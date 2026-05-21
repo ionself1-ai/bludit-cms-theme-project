@@ -55,6 +55,18 @@ $author = Auth::user();
         <?php endif; ?>
 
         <?php
+        $likeCount = Posts::likes($post['id']);
+        $isLiked = !empty($_COOKIE['liked_' . $post['id']]);
+        ?>
+        <div class="like-bar">
+            <button type="button" class="like-btn <?= $isLiked ? 'is-liked' : '' ?>" data-post-id="<?= htmlspecialchars($post['id']) ?>" aria-pressed="<?= $isLiked ? 'true' : 'false' ?>" aria-label="Поставить лайк">
+                <span class="like-icon-outline"><?= Icon::svg('heart', 20) ?></span>
+                <span class="like-icon-fill"><?= Icon::svg('heart-fill', 20) ?></span>
+                <span class="like-count" data-count="<?= (int)$likeCount ?>"><?= (int)$likeCount ?></span>
+            </button>
+            <span class="like-hint" data-hint-empty="Понравилась статья? Поставьте лайк" data-hint-liked="Спасибо!"><?= $isLiked ? 'Спасибо!' : 'Понравилась статья? Поставьте лайк' ?></span>
+        </div>
+        <?php
         // Абсолютный URL поста (для корректного шаринга)
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? '';

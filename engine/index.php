@@ -61,6 +61,9 @@ if ($section === 'sitemap') {
 if ($section === 'subscribe') {
     require __DIR__ . '/lib/subscribe-handler.php'; exit;
 }
+if ($section === 'like') {
+    require __DIR__ . '/lib/like-handler.php'; exit;
+}
 
 if ($section === 'category' && !empty($parts[1])) {
     $category = Categories::get($parts[1]);

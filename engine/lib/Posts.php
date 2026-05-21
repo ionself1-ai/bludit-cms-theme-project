@@ -120,6 +120,29 @@ class Posts {
         return true;
     }
 
+    // Количество лайков у поста
+    public static function likes($postId) {
+        $likes = Storage::read('likes');
+        return isset($likes[$postId]) ? (int)($likes[$postId]['count'] ?? 0) : 0;
+    }
+
+    // Топ постов по лайкам
+    public static function topLiked($limit = 5) {
+        $likes = Storage::read('likes');
+        if (empty($likes)) return [];
+        arsort($likes);
+        $result = [];
+        foreach ($likes as $id => $row) {
+            $p = self::byId($id);
+            if ($p && self::isLive($p)) {
+                $p['like_count'] = (int)$row['count'];
+                $result[] = $p;
+                if (count($result) >= $limit) break;
+            }
+        }
+        return $result;
+    }
+
     public static function byId($id) {
         foreach (Storage::read('posts') as $p) {
             if (($p['id'] ?? '') === $id) return $p;

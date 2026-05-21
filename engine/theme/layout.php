@@ -296,6 +296,49 @@ document.addEventListener('click', e => {
     }
 });
 
+// Лайки на постах
+document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const id = btn.dataset.postId;
+        if (!id || btn.disabled) return;
+        btn.disabled = true;
+        // Оптимистично переключаем
+        const liked = btn.classList.toggle('is-liked');
+        const countEl = btn.querySelector('.like-count');
+        let cnt = parseInt(countEl.dataset.count || '0', 10);
+        cnt = Math.max(0, cnt + (liked ? 1 : -1));
+        countEl.dataset.count = cnt;
+        countEl.textContent = cnt;
+        // Анимация
+        btn.classList.add('is-bumping');
+        setTimeout(() => btn.classList.remove('is-bumping'), 400);
+        // Обновляем подсказку
+        const hint = btn.parentElement.querySelector('.like-hint');
+        if (hint) hint.textContent = liked ? hint.dataset.hintLiked : hint.dataset.hintEmpty;
+        // Запрос
+        try {
+            const fd = new FormData();
+            fd.append('post_id', id);
+            const r = await fetch('<?= BASE_URL ?>?route=like', { method: 'POST', body: fd });
+            const d = await r.json();
+            if (d.ok) {
+                countEl.dataset.count = d.count;
+                countEl.textContent = d.count;
+                btn.classList.toggle('is-liked', !!d.liked);
+                btn.setAttribute('aria-pressed', d.liked ? 'true' : 'false');
+            }
+        } catch (_) {
+            // Откатываем при ошибке
+            btn.classList.toggle('is-liked');
+            cnt = Math.max(0, cnt + (liked ? -1 : 1));
+            countEl.dataset.count = cnt;
+            countEl.textContent = cnt;
+        } finally {
+            btn.disabled = false;
+        }
+    });
+});
+
 // Подписка на новые статьи (все формы с data-subscribe)
 document.querySelectorAll('form[data-subscribe]').forEach(form => {
     form.addEventListener('submit', async (e) => {

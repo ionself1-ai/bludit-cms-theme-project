@@ -18,6 +18,9 @@
                 <div class="post-meta-top">
                     <?php if ($cat): ?><a href="<?= BASE_URL ?>?route=category/<?= urlencode($cat['key']) ?>" class="post-category"><?= htmlspecialchars($cat['name']) ?></a><?php endif; ?>
                     <span class="post-date"><?= date('d.m.Y', strtotime($post['date'])) ?></span>
+                    <?php $lc = Posts::likes($post['id']); if ($lc > 0): ?>
+                        <span class="post-likes" title="<?= $lc ?> лайков"><?= Icon::svg('heart-fill', 12) ?> <?= $lc ?></span>
+                    <?php endif; ?>
                 </div>
                 <h2 class="post-title"><a href="<?= BASE_URL ?>?route=post/<?= urlencode($post['slug']) ?>"><?= htmlspecialchars($post['title']) ?></a></h2>
                 <p class="post-excerpt"><?= htmlspecialchars(Posts::excerpt($post)) ?></p>
