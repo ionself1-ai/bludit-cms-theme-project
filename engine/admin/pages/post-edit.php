@@ -20,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::checkCsrf($_POST['csrf'] ?? '
         'cover' => trim($_POST['cover'] ?? ''),
         'tags' => $tags,
         'sticky' => !empty($_POST['sticky']),
+        'title_on_cover' => !empty($_POST['title_on_cover']),
+        'cover_overlay_type' => $_POST['cover_overlay_type'] ?? 'title',
         'content' => is_array($contentArr) ? $contentArr : ['blocks' => []],
         'published' => !empty($_POST['published']),
     ];
@@ -32,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::checkCsrf($_POST['csrf'] ?? '
     }
 }
 
-$post = $post ?: ['title'=>'','slug'=>'','description'=>'','category'=>'','cover'=>'','tags'=>[],'sticky'=>false,'content'=>['blocks'=>[]],'published'=>false,'id'=>''];
+$post = $post ?: ['title'=>'','slug'=>'','description'=>'','category'=>'','cover'=>'','tags'=>[],'sticky'=>false,'title_on_cover'=>false,'cover_overlay_type'=>'title','content'=>['blocks'=>[]],'published'=>false,'id'=>''];
 $cats = Categories::all();
 ?>
 <div class="admin-header">
@@ -81,6 +83,34 @@ $cats = Categories::all();
             <button type="button" class="btn" onclick="document.getElementById('cover-file').click()">Загрузить</button>
         </div>
         <?php if (!empty($post['cover'])): ?><img src="<?= htmlspecialchars($post['cover']) ?>" style="max-width:200px;margin-top:.5rem;border-radius:8px;"><?php endif; ?>
+
+        <div style="margin-top:.75rem; padding:.75rem; background:var(--secondary); border-radius:8px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" name="title_on_cover" id="title-on-cover" value="1" <?= !empty($post['title_on_cover'])?'checked':'' ?>>
+                <span>Показать текст поверх обложки</span>
+            </label>
+            <div id="cover-overlay-options" style="margin-top:.5rem; padding-left:24px; <?= empty($post['title_on_cover'])?'display:none;':'' ?>">
+                <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;">
+                    <input type="radio" name="cover_overlay_type" value="title" <?= ($post['cover_overlay_type'] ?? 'title')==='title'?'checked':'' ?>>
+                    <span>Заголовок статьи</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;">
+                    <input type="radio" name="cover_overlay_type" value="category" <?= ($post['cover_overlay_type'] ?? '')==='category'?'checked':'' ?>>
+                    <span>Категория</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="radio" name="cover_overlay_type" value="both" <?= ($post['cover_overlay_type'] ?? '')==='both'?'checked':'' ?>>
+                    <span>Категория + заголовок</span>
+                </label>
+            </div>
+        </div>
+        <script>
+        (function(){
+            const cb = document.getElementById('title-on-cover');
+            const opts = document.getElementById('cover-overlay-options');
+            if (cb && opts) cb.addEventListener('change', () => { opts.style.display = cb.checked ? '' : 'none'; });
+        })();
+        </script>
     </div>
 
     <div class="form-row">
@@ -198,6 +228,11 @@ function readForm() {
         cover: f['cover'].value,
         tags,
         sticky: f.sticky.checked,
+        title_on_cover: f['title_on_cover'] ? f['title_on_cover'].checked : false,
+        cover_overlay_type: (function(){
+            const r = f.querySelector('input[name="cover_overlay_type"]:checked');
+            return r ? r.value : 'title';
+        })(),
         published: f.published.checked
     };
 }

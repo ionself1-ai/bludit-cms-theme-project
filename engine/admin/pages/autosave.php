@@ -20,6 +20,8 @@ $data = [
     'cover' => $payload['cover'] ?? '',
     'tags' => $payload['tags'] ?? [],
     'sticky' => !empty($payload['sticky']),
+    'title_on_cover' => !empty($payload['title_on_cover']),
+    'cover_overlay_type' => $payload['cover_overlay_type'] ?? 'title',
     'content' => is_array($payload['content']) ? $payload['content'] : ['blocks' => []],
     'published' => !empty($payload['published']),
     'autosavedAt' => date('c'),

@@ -17,9 +17,10 @@
         <?php foreach ($pag['items'] as $post): $cat = Categories::get($post['category'] ?? ''); ?>
         <article class="post-card <?= !empty($post['sticky']) ? 'is-sticky' : '' ?>">
             <?php if (!empty($post['cover'])): ?>
-            <a href="<?= BASE_URL ?>?route=post/<?= urlencode($post['slug']) ?>" class="post-cover">
+            <a href="<?= BASE_URL ?>?route=post/<?= urlencode($post['slug']) ?>" class="post-cover<?= !empty($post['title_on_cover']) ? ' has-overlay' : '' ?>">
                 <img src="<?= htmlspecialchars($post['cover']) ?>" alt="<?= htmlspecialchars($post['title']) ?>" loading="lazy">
                 <?php if (!empty($post['sticky'])): ?><span class="sticky-corner">📌</span><?php endif; ?>
+                <?= Posts::coverOverlayHtml($post) ?>
             </a>
             <?php endif; ?>
             <div class="post-card-body">

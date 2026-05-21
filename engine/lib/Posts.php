@@ -56,6 +56,22 @@ class Posts {
         return array_map(fn($x) => $x['post'], array_slice($scored, 0, $limit));
     }
 
+    // Рендер оверлея заголовка/категории поверх обложки в карточке
+    public static function coverOverlayHtml($post) {
+        if (empty($post['title_on_cover']) || empty($post['cover'])) return '';
+        $type = $post['cover_overlay_type'] ?? 'title';
+        $cat = Categories::get($post['category'] ?? '');
+        $html = '<span class="post-cover-text">';
+        if (($type === 'category' || $type === 'both') && $cat) {
+            $html .= '<span class="post-cover-category">' . htmlspecialchars($cat['name']) . '</span>';
+        }
+        if ($type === 'title' || $type === 'both') {
+            $html .= '<span class="post-cover-title">' . htmlspecialchars($post['title'] ?? '') . '</span>';
+        }
+        $html .= '</span>';
+        return $html;
+    }
+
     public static function readingTime($post) {
         $words = str_word_count(self::plainText($post['content'] ?? []), 0, "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ");
         $min = max(1, (int)round($words / 200));

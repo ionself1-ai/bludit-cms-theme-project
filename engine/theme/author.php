@@ -19,8 +19,9 @@
         <?php foreach ($pag['items'] as $post): $cat = Categories::get($post['category'] ?? ''); ?>
         <article class="post-card">
             <?php if (!empty($post['cover'])): ?>
-            <a href="<?= BASE_URL ?>?route=post/<?= urlencode($post['slug']) ?>" class="post-cover">
+            <a href="<?= BASE_URL ?>?route=post/<?= urlencode($post['slug']) ?>" class="post-cover<?= !empty($post['title_on_cover']) ? ' has-overlay' : '' ?>">
                 <img src="<?= htmlspecialchars($post['cover']) ?>" alt="" loading="lazy">
+                <?= Posts::coverOverlayHtml($post) ?>
             </a>
             <?php endif; ?>
             <div class="post-card-body">
