@@ -105,9 +105,9 @@ $cats = Categories::all();
 
         <!-- Мини-превью карточки -->
         <div class="card-preview-wrap" style="margin-top:1rem;">
-            <div class="card-preview-label" style="font-size:12px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Превью карточки</div>
-            <div class="card-preview" id="card-preview" style="max-width:340px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--card);">
-                <div class="cp-cover" id="cp-cover" style="position:relative; aspect-ratio:16/9; background:var(--secondary); overflow:hidden;">
+            <div class="card-preview-label" style="font-size:12px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Превью карточки <span style="text-transform:none; letter-spacing:0; opacity:0.7;">— перетащите картинку, чтобы загрузить обложку</span></div>
+            <div class="card-preview" id="card-preview" style="max-width:340px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--card); transition:border-color 0.15s, box-shadow 0.15s;">
+                <div class="cp-cover" id="cp-cover" style="position:relative; aspect-ratio:16/9; background:var(--secondary); overflow:hidden; cursor:pointer;" title="Нажмите или перетащите картинку">
                     <img id="cp-img" src="<?= htmlspecialchars($post['cover'] ?? '') ?>" alt="" style="width:100%; height:100%; object-fit:cover; display:<?= !empty($post['cover'])?'block':'none' ?>;">
                     <div id="cp-empty" style="display:<?= empty($post['cover'])?'flex':'none' ?>; position:absolute; inset:0; align-items:center; justify-content:center; color:var(--muted); font-size:13px;">Обложка не задана</div>
                     <div id="cp-gradient" style="display:none; position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0.75) 100%); pointer-events:none;"></div>
@@ -115,6 +115,11 @@ $cats = Categories::all();
                         <span id="cp-cat" style="display:none; padding:3px 10px; background:rgba(255,255,255,0.18); backdrop-filter:blur(6px); border-radius:999px; font-size:10.5px; font-weight:600; letter-spacing:0.02em; text-transform:uppercase; margin-bottom:6px;"></span>
                         <div id="cp-title-overlay" style="display:none; font-size:0.95rem; font-weight:700; line-height:1.3; margin-top:6px;"></div>
                     </div>
+                    <div id="cp-drop" style="display:none; position:absolute; inset:0; background:rgba(59,130,246,0.85); color:#fff; align-items:center; justify-content:center; font-size:14px; font-weight:600; pointer-events:none; z-index:10; flex-direction:column; gap:6px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <div>Отпустите, чтобы загрузить</div>
+                    </div>
+                    <div id="cp-uploading" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.55); color:#fff; align-items:center; justify-content:center; font-size:13px; z-index:11;">Загрузка...</div>
                 </div>
                 <div class="cp-body" style="padding:0.85rem 1rem 1rem;">
                     <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--muted); margin-bottom:6px;">
@@ -196,6 +201,101 @@ $cats = Categories::all();
             // Глобальный хук — чтобы загрузка обложки тоже обновляла превью
             window.refreshCardPreview = refresh;
             refresh();
+
+            // === Drag & Drop / Click для загрузки обложки прямо в превью ===
+            const card = $('card-preview');
+            const dropZone = $('cp-cover');
+            const dropOverlay = $('cp-drop');
+            const uploadingOverlay = $('cp-uploading');
+            const fileInput = $('cover-file');
+
+            async function uploadFile(file) {
+                if (!file || !file.type.startsWith('image/')) {
+                    alert('Это не изображение');
+                    return;
+                }
+                uploadingOverlay.style.display = 'flex';
+                try {
+                    const fd = new FormData();
+                    fd.append('image', file);
+                    fd.append('csrf', '<?= Auth::csrf() ?>');
+                    const res = await fetch('<?= BASE_URL ?>?route=admin/upload-cover', { method:'POST', body: fd });
+                    const data = await res.json();
+                    if (data.success) {
+                        coverInput.value = data.url;
+                        coverInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        refresh();
+                    } else {
+                        alert(data.error || 'Ошибка загрузки');
+                    }
+                } catch (e) {
+                    alert('Ошибка сети');
+                } finally {
+                    uploadingOverlay.style.display = 'none';
+                }
+            }
+
+            // Клик по превью — открыть выбор файла
+            dropZone.addEventListener('click', (e) => {
+                e.preventDefault();
+                fileInput.click();
+            });
+
+            // Drag & Drop
+            let dragDepth = 0;
+            function isFileDrag(e) {
+                return e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+            }
+            card.addEventListener('dragenter', (e) => {
+                if (!isFileDrag(e)) return;
+                e.preventDefault();
+                dragDepth++;
+                dropOverlay.style.display = 'flex';
+                card.style.borderColor = 'var(--accent)';
+                card.style.boxShadow = '0 0 0 3px rgba(59,130,246,0.15)';
+            });
+            card.addEventListener('dragover', (e) => {
+                if (!isFileDrag(e)) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+            card.addEventListener('dragleave', (e) => {
+                if (!isFileDrag(e)) return;
+                dragDepth--;
+                if (dragDepth <= 0) {
+                    dragDepth = 0;
+                    dropOverlay.style.display = 'none';
+                    card.style.borderColor = '';
+                    card.style.boxShadow = '';
+                }
+            });
+            card.addEventListener('drop', (e) => {
+                if (!isFileDrag(e)) return;
+                e.preventDefault();
+                dragDepth = 0;
+                dropOverlay.style.display = 'none';
+                card.style.borderColor = '';
+                card.style.boxShadow = '';
+                const file = e.dataTransfer.files && e.dataTransfer.files[0];
+                if (file) uploadFile(file);
+            });
+
+            // Вставка из буфера обмена (Ctrl+V на скриншот)
+            card.addEventListener('paste', (e) => {
+                const items = e.clipboardData && e.clipboardData.items;
+                if (!items) return;
+                for (const item of items) {
+                    if (item.type.startsWith('image/')) {
+                        const file = item.getAsFile();
+                        if (file) uploadFile(file);
+                        break;
+                    }
+                }
+            });
+            card.tabIndex = 0;
+
+            // Глобально, чтобы старый обработчик cover-file тоже мог использовать
+            window.uploadCoverFile = uploadFile;
         })();
         </script>
     </div>
