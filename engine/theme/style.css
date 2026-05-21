@@ -632,6 +632,19 @@ select {
   margin-bottom: 0.5rem;
 }
 
+/* === Логотип === */
+.logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--card);
+}
+.logo-icon {
+  letter-spacing: -0.5px;
+}
+
 /* === Иконки общие === */
 .icon {
   vertical-align: middle;

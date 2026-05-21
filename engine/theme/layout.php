@@ -30,7 +30,11 @@ $staticPages = Pages::all();
     <div class="site-container">
         <div class="navbar-inner">
             <a href="<?= BASE_URL ?>" class="navbar-logo">
-                <div class="logo-icon"><?= htmlspecialchars(mb_substr($site['site_title'], 0, 1)) ?></div>
+                <?php if (!empty($site['logo'])): ?>
+                    <img src="<?= htmlspecialchars($site['logo']) ?>" alt="<?= htmlspecialchars($site['site_title']) ?>" class="logo-img">
+                <?php else: ?>
+                    <div class="logo-icon"><?= htmlspecialchars(mb_substr($site['site_title'], 0, 2)) ?></div>
+                <?php endif; ?>
                 <span class="logo-text"><?= htmlspecialchars($site['site_title']) ?></span>
             </a>
 
@@ -88,7 +92,11 @@ $staticPages = Pages::all();
     <div class="site-container">
         <div class="footer-inner">
             <div class="footer-logo">
-                <div class="logo-icon"><?= htmlspecialchars(mb_substr($site['site_title'], 0, 1)) ?></div>
+                <?php if (!empty($site['logo'])): ?>
+                    <img src="<?= htmlspecialchars($site['logo']) ?>" alt="" class="logo-img">
+                <?php else: ?>
+                    <div class="logo-icon"><?= htmlspecialchars(mb_substr($site['site_title'], 0, 2)) ?></div>
+                <?php endif; ?>
                 <span class="logo-text"><?= htmlspecialchars($site['site_title']) ?></span>
             </div>
             <div class="footer-links">

@@ -20,9 +20,10 @@ if (empty($users)) {
         'avatar' => 'https://cdn.poehali.dev/projects/9f6e2264-476d-4c4b-a9c4-d0d1ec9ddf3f/files/281daa50-b47c-480f-aa67-b8e87e151ea3.jpg',
     ]]);
     Storage::write('settings', [
-        'site_title' => 'Мой блог',
+        'site_title' => 'АС',
         'site_description' => 'Личный блог об интересном',
         'posts_per_page' => 9,
+        'logo' => 'https://cdn.poehali.dev/projects/9f6e2264-476d-4c4b-a9c4-d0d1ec9ddf3f/files/42226759-52b1-4f85-a0fd-631f72e89df5.jpg',
     ]);
     Storage::write('categories', [
         ['key' => 'novosti', 'name' => 'Новости', 'description' => 'Свежие материалы'],
