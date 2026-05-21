@@ -94,11 +94,16 @@ class Posts {
 
     public static function save($data) {
         $posts = Storage::read('posts');
+        $wasPublished = false;
+        $alreadyNotified = false;
         if (!empty($data['id'])) {
             foreach ($posts as $i => $p) {
                 if ($p['id'] === $data['id']) {
+                    $wasPublished = !empty($p['published']);
+                    $alreadyNotified = !empty($p['notified']);
                     $posts[$i] = array_merge($p, $data);
                     Storage::write('posts', $posts);
+                    self::maybeNotify($posts[$i], $wasPublished, $alreadyNotified);
                     return $data['id'];
                 }
             }
@@ -111,7 +116,52 @@ class Posts {
         while (self::slugTaken($data['slug'], $data['id'])) { $data['slug'] = $base . '-' . (++$i); }
         $posts[] = $data;
         Storage::write('posts', $posts);
+        self::maybeNotify($data, false, false);
         return $data['id'];
+    }
+
+    // Отправляет уведомления подписчикам при первой публикации
+    private static function maybeNotify($post, $wasPublished, $alreadyNotified) {
+        if (empty($post['published']) || $alreadyNotified) return;
+        if (!class_exists('Subscribers') || !class_exists('Mailer')) return;
+        $subs = Subscribers::all(true);
+        if (empty($subs)) {
+            self::markNotified($post['id']);
+            return;
+        }
+        $site = Settings::all();
+        $brand = htmlspecialchars($site['site_title'] ?? 'Blog');
+        $postUrl = rtrim(BASE_URL, '/') . '/?route=post/' . urlencode($post['slug']);
+        $title = htmlspecialchars($post['title'] ?? '');
+        $desc  = htmlspecialchars($post['description'] ?? '');
+        $cover = !empty($post['cover']) ? htmlspecialchars($post['cover']) : '';
+
+        $coverHtml = $cover ? '<img src="' . $cover . '" alt="" style="width:100%;max-height:280px;object-fit:cover;border-radius:8px;margin-bottom:16px;">' : '';
+        $descHtml = $desc ? '<p style="color:#555;margin:0 0 16px;">' . $desc . '</p>' : '';
+
+        foreach ($subs as $sub) {
+            $unsubUrl = rtrim(BASE_URL, '/') . '/?route=subscribe&action=unsub&token=' . urlencode($sub['unsub_token']);
+            $body = $coverHtml
+                  . '<h2 style="margin:0 0 12px;font-size:20px;line-height:1.3;">' . $title . '</h2>'
+                  . $descHtml
+                  . '<p style="margin:24px 0;"><a href="' . $postUrl . '" style="display:inline-block;background:#3b82f6;color:#fff;padding:12px 22px;border-radius:8px;font-weight:600;text-decoration:none;">Читать статью</a></p>';
+            $footer = 'Вы получили это письмо, потому что подписаны на новые статьи ' . $brand . '.<br>'
+                    . '<a href="' . $unsubUrl . '" style="color:#888;">Отписаться</a>';
+            @Mailer::send($sub['email'], 'Новая статья: ' . $post['title'], Mailer::template($post['title'], $body, $footer));
+        }
+        self::markNotified($post['id']);
+    }
+
+    private static function markNotified($id) {
+        $posts = Storage::read('posts');
+        foreach ($posts as &$p) {
+            if (($p['id'] ?? '') === $id) {
+                $p['notified'] = true;
+                $p['notified_at'] = date('c');
+                break;
+            }
+        }
+        Storage::write('posts', $posts);
     }
 
     private static function slugTaken($slug, $excludeId = null) {

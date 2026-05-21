@@ -109,6 +109,18 @@ $author = Auth::user();
             }
         })();
         </script>
+        <div class="post-subscribe">
+            <div class="post-subscribe-icon">📬</div>
+            <div class="post-subscribe-text">
+                <div class="post-subscribe-title">Понравилось? Подпишитесь на новые статьи</div>
+                <div class="post-subscribe-desc">Раз в неделю — свежие материалы на почту. Без спама.</div>
+            </div>
+            <form class="subscribe-form" data-subscribe>
+                <input type="email" name="email" required placeholder="ваш@email.ru" class="subscribe-input">
+                <button type="submit" class="subscribe-btn">Подписаться</button>
+                <div class="subscribe-status"></div>
+            </form>
+        </div>
     </article>
 
     <?php if (!empty($related)): ?>

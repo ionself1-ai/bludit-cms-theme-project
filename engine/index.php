@@ -7,6 +7,8 @@ require __DIR__ . '/lib/Categories.php';
 require __DIR__ . '/lib/Pages.php';
 require __DIR__ . '/lib/Settings.php';
 require __DIR__ . '/lib/Uploader.php';
+require __DIR__ . '/lib/Subscribers.php';
+require __DIR__ . '/lib/Mailer.php';
 require __DIR__ . '/theme/icons.php';
 
 // Первый запуск — создаём админа
@@ -55,6 +57,9 @@ if ($section === 'rss') {
 }
 if ($section === 'sitemap') {
     require THEME_PATH . '/sitemap.php'; exit;
+}
+if ($section === 'subscribe') {
+    require __DIR__ . '/lib/subscribe-handler.php'; exit;
 }
 
 if ($section === 'category' && !empty($parts[1])) {

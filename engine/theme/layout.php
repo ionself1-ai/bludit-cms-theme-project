@@ -191,6 +191,17 @@ $isHome = ($template ?? '') === 'home';
 
 <footer class="site-footer">
     <div class="site-container">
+        <div class="subscribe-block">
+            <div class="subscribe-text">
+                <div class="subscribe-title">Подпишитесь на новые статьи</div>
+                <div class="subscribe-desc">Раз в неделю присылаю свежие материалы. Без спама.</div>
+            </div>
+            <form class="subscribe-form" data-subscribe>
+                <input type="email" name="email" required placeholder="ваш@email.ru" class="subscribe-input">
+                <button type="submit" class="subscribe-btn">Подписаться</button>
+                <div class="subscribe-status"></div>
+            </form>
+        </div>
         <div class="footer-inner">
             <div class="footer-logo">
                 <?php if (!empty($site['logo'])): ?>
@@ -283,6 +294,40 @@ document.addEventListener('click', e => {
             document.body.classList.remove('mobile-nav-open');
         }
     }
+});
+
+// Подписка на новые статьи (все формы с data-subscribe)
+document.querySelectorAll('form[data-subscribe]').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = form.querySelector('.subscribe-status');
+        const input = form.querySelector('input[name="email"]');
+        const btn = form.querySelector('button[type="submit"]');
+        const email = (input.value || '').trim();
+        if (!email) return;
+        btn.disabled = true;
+        status.textContent = 'Отправка...';
+        status.className = 'subscribe-status is-loading';
+        try {
+            const fd = new FormData();
+            fd.append('email', email);
+            const r = await fetch('<?= BASE_URL ?>?route=subscribe&action=new', { method: 'POST', body: fd });
+            const d = await r.json();
+            if (d.ok) {
+                status.textContent = '✓ ' + (d.message || 'Готово');
+                status.className = 'subscribe-status is-success';
+                input.value = '';
+            } else {
+                status.textContent = d.error || 'Ошибка';
+                status.className = 'subscribe-status is-error';
+            }
+        } catch (_) {
+            status.textContent = 'Ошибка сети';
+            status.className = 'subscribe-status is-error';
+        } finally {
+            btn.disabled = false;
+        }
+    });
 });
 
 function toggleTheme() {

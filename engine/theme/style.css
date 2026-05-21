@@ -1194,6 +1194,122 @@ body.mobile-nav-open .nav-toggle-icon-close {
 }
 
 /* ==========================================================================
+   Подписка на новые статьи
+   ========================================================================== */
+.subscribe-block {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.5rem 1.75rem;
+  margin: 2rem 0 1.5rem;
+  background: var(--secondary);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.subscribe-text {
+  flex: 1;
+  min-width: 220px;
+}
+.subscribe-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.subscribe-desc {
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.subscribe-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  position: relative;
+}
+.subscribe-input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  outline: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  min-width: 220px;
+  color: var(--fg);
+  transition: border-color 0.15s;
+}
+.subscribe-input:focus {
+  border-color: var(--accent);
+}
+.subscribe-btn {
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
+}
+.subscribe-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+.subscribe-btn:active {
+  transform: translateY(1px);
+}
+.subscribe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.subscribe-status {
+  width: 100%;
+  font-size: 13px;
+  min-height: 18px;
+  margin-top: 4px;
+}
+.subscribe-status.is-success {
+  color: #10b981;
+}
+.subscribe-status.is-error {
+  color: #ef4444;
+}
+.subscribe-status.is-loading {
+  color: var(--muted);
+}
+
+/* Блок подписки после статьи */
+.post-subscribe {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  margin-top: 2.5rem;
+  background: linear-gradient(135deg, var(--secondary), var(--card));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.post-subscribe-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+.post-subscribe-text {
+  flex: 1;
+  min-width: 200px;
+}
+.post-subscribe-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.post-subscribe-desc {
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+/* ==========================================================================
    Адаптивный дизайн
    ========================================================================== */
 
