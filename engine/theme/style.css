@@ -1160,6 +1160,57 @@ body.mobile-nav-open .nav-toggle-icon-close {
    Адаптивный дизайн
    ========================================================================== */
 
+/* Мобильная лента категорий (скрыта на десктопе) */
+.mobile-cats {
+  display: none;
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 90;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.mobile-cats-track {
+  display: flex;
+  gap: 6px;
+  padding: 8px 14px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.mobile-cats-track::-webkit-scrollbar {
+  display: none;
+}
+.mobile-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--secondary);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.mobile-cat:hover {
+  color: var(--fg);
+}
+.mobile-cat.is-active {
+  background: var(--fg);
+  color: var(--bg);
+}
+.mobile-cat svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
 /* Защита от переполнений в контенте поста */
 .single-content img,
 .single-content video,
@@ -1221,6 +1272,14 @@ body.mobile-nav-open .nav-toggle-icon-close {
   }
   .site-container {
     padding: 0 14px;
+  }
+  /* Показываем мобильную ленту категорий */
+  .mobile-cats {
+    display: block;
+  }
+  /* Скрываем дубль-фильтры на главной и категории — лента сверху их заменяет */
+  .page-home > .filter-bar {
+    display: none;
   }
   /* Бургер */
   .nav-toggle {

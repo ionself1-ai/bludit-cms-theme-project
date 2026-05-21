@@ -87,6 +87,31 @@ $staticPages = Pages::all();
     </div>
 </header>
 
+<?php
+// Определяем активную категорию для подсветки в мобильной ленте
+$activeCatKey = '';
+if (($template ?? '') === 'category' && !empty($category['key'])) {
+    $activeCatKey = $category['key'];
+}
+$isHome = ($template ?? '') === 'home';
+?>
+<nav class="mobile-cats" aria-label="Категории">
+    <div class="mobile-cats-track">
+        <a href="<?= BASE_URL ?>" class="mobile-cat <?= $isHome ? 'is-active' : '' ?>">
+            <?= Icon::svg('home', 14) ?> Все
+        </a>
+        <?php foreach ($categories as $cat): ?>
+            <a href="<?= BASE_URL ?>?route=category/<?= urlencode($cat['key']) ?>"
+               class="mobile-cat <?= $activeCatKey === $cat['key'] ? 'is-active' : '' ?>">
+                <?= htmlspecialchars($cat['name']) ?>
+            </a>
+        <?php endforeach; ?>
+        <a href="<?= BASE_URL ?>?route=tags" class="mobile-cat">
+            <?= Icon::svg('tag', 14) ?> Теги
+        </a>
+    </div>
+</nav>
+
 <main class="site-main">
     <div class="site-container">
         <?php require THEME_PATH . '/' . $template . '.php'; ?>
@@ -130,6 +155,17 @@ document.addEventListener('click', e => {
         document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
     }
 });
+
+// Автоскролл мобильной ленты категорий к активной
+(function(){
+    const track = document.querySelector('.mobile-cats-track');
+    if (!track) return;
+    const active = track.querySelector('.mobile-cat.is-active');
+    if (active) {
+        const offset = active.offsetLeft - (track.clientWidth - active.clientWidth) / 2;
+        track.scrollLeft = Math.max(0, offset);
+    }
+})();
 
 function toggleMobileNav() {
     document.body.classList.toggle('mobile-nav-open');
