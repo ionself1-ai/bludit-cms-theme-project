@@ -64,6 +64,12 @@ if ($section === 'subscribe') {
 if ($section === 'like') {
     require __DIR__ . '/lib/like-handler.php'; exit;
 }
+if ($section === 'suggest') {
+    require __DIR__ . '/lib/search-suggest.php'; exit;
+}
+if ($section === 'manifest') {
+    require __DIR__ . '/lib/manifest.php'; exit;
+}
 
 if ($section === 'category' && !empty($parts[1])) {
     $category = Categories::get($parts[1]);
