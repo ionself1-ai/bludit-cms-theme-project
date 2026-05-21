@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        <?php if ($WHERE_AM_I == 'home'): ?>
+        <?php if ($WHERE_AM_I == 'home' || !isset($page)): ?>
             <?php echo $site->title(); ?> — <?php echo $site->slogan(); ?>
         <?php else: ?>
             <?php echo $page->title(); ?> — <?php echo $site->title(); ?>
         <?php endif; ?>
     </title>
-    <meta name="description" content="<?php echo ($WHERE_AM_I == 'home') ? $site->description() : $page->description(); ?>">
+    <meta name="description" content="<?php echo ($WHERE_AM_I == 'home' || !isset($page)) ? $site->description() : $page->description(); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@
                 <?php endforeach; ?>
                 <?php foreach ($staticContent as $staticPage): ?>
                     <?php if ($staticPage->slug() == 'about'): ?>
-                    <a href="<?php echo $staticPage->permalink(); ?>" class="nav-link <?php echo ($WHERE_AM_I == 'page' && $page->slug() == 'about') ? 'nav-link-active' : ''; ?>">
+                    <a href="<?php echo $staticPage->permalink(); ?>" class="nav-link <?php echo ($WHERE_AM_I == 'page' && isset($page) && $page->slug() == 'about') ? 'nav-link-active' : ''; ?>">
                         Обо мне
                     </a>
                     <?php endif; ?>
