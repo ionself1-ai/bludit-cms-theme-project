@@ -1,0 +1,80 @@
+<?php
+require __DIR__ . '/config.php';
+require __DIR__ . '/lib/Storage.php';
+require __DIR__ . '/lib/Auth.php';
+require __DIR__ . '/lib/Posts.php';
+require __DIR__ . '/lib/Categories.php';
+require __DIR__ . '/lib/Pages.php';
+require __DIR__ . '/lib/Settings.php';
+require __DIR__ . '/lib/Uploader.php';
+
+// Первый запуск — создаём админа
+$users = Storage::read('users');
+if (empty($users)) {
+    Storage::write('users', [[
+        'username' => 'admin',
+        'password' => password_hash('admin', PASSWORD_DEFAULT),
+        'name' => 'Администратор',
+        'bio' => '',
+        'avatar' => '',
+    ]]);
+    Storage::write('settings', [
+        'site_title' => 'Мой блог',
+        'site_description' => 'Личный блог об интересном',
+        'posts_per_page' => 9,
+    ]);
+    Storage::write('categories', [
+        ['key' => 'novosti', 'name' => 'Новости', 'description' => 'Свежие материалы'],
+    ]);
+    Storage::write('pages', [
+        ['slug' => 'about', 'title' => 'Обо мне', 'content' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Здесь расскажите о себе.']]]]],
+        ['slug' => 'rules', 'title' => 'Правила', 'content' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Здесь правила сайта.']]]]],
+    ]);
+}
+
+// Роутинг
+$route = $_GET['route'] ?? 'home';
+$parts = explode('/', trim($route, '/'));
+$section = $parts[0] ?? 'home';
+
+if ($section === 'admin') {
+    require __DIR__ . '/admin/router.php';
+    exit;
+}
+
+// Публичный роутинг
+$publicRoutes = [
+    'home', 'category', 'post', 'page', 'search',
+];
+
+if ($section === 'category' && !empty($parts[1])) {
+    $category = Categories::get($parts[1]);
+    if (!$category) { http_response_code(404); echo 'Категория не найдена'; exit; }
+    $allPosts = Posts::byCategory($category['key']);
+    $pag = Posts::paginate($allPosts, (int)($_GET['page'] ?? 1), Settings::get('posts_per_page', 9));
+    $pageTitle = $category['name'];
+    $template = 'category';
+} elseif ($section === 'post' && !empty($parts[1])) {
+    $post = Posts::bySlug($parts[1]);
+    if (!$post || empty($post['published'])) { http_response_code(404); echo 'Статья не найдена'; exit; }
+    $pageTitle = $post['title'];
+    $template = 'post';
+} elseif ($section === 'page' && !empty($parts[1])) {
+    $page = Pages::get($parts[1]);
+    if (!$page) { http_response_code(404); echo 'Страница не найдена'; exit; }
+    $pageTitle = $page['title'];
+    $template = 'page';
+} elseif ($section === 'search') {
+    $query = $_GET['q'] ?? '';
+    $allPosts = Posts::search($query);
+    $pag = Posts::paginate($allPosts, (int)($_GET['page'] ?? 1), Settings::get('posts_per_page', 9));
+    $pageTitle = 'Поиск';
+    $template = 'search';
+} else {
+    $allPosts = Posts::all(true);
+    $pag = Posts::paginate($allPosts, (int)($_GET['page'] ?? 1), Settings::get('posts_per_page', 9));
+    $pageTitle = Settings::get('site_title');
+    $template = 'home';
+}
+
+require THEME_PATH . '/layout.php';
