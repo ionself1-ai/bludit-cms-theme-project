@@ -79,7 +79,7 @@ if ($section === 'category' && !empty($parts[1])) {
     $template = 'tag';
 } elseif ($section === 'post' && !empty($parts[1])) {
     $post = Posts::bySlug($parts[1]);
-    if (!$post || empty($post['published'])) { http_response_code(404); $template = '404'; $pageTitle = 'Не найдено'; }
+    if (!$post || !Posts::isLive($post)) { http_response_code(404); $template = '404'; $pageTitle = 'Не найдено'; }
     else {
         $pageTitle = $post['title'];
         $template = 'post';

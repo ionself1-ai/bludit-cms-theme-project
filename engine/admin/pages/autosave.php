@@ -22,6 +22,7 @@ $data = [
     'sticky' => !empty($payload['sticky']),
     'title_on_cover' => !empty($payload['title_on_cover']),
     'cover_overlay_type' => $payload['cover_overlay_type'] ?? 'title',
+    'publish_at' => !empty($payload['publish_at']) ? date('Y-m-d H:i:s', strtotime($payload['publish_at'])) : '',
     'content' => is_array($payload['content']) ? $payload['content'] : ['blocks' => []],
     'published' => !empty($payload['published']),
     'autosavedAt' => date('c'),

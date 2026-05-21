@@ -25,8 +25,29 @@ $posts = Posts::all(false);
                 </td>
                 <td><?= $c ? htmlspecialchars($c['name']) : '—' ?></td>
                 <td style="font-size:12px;color:var(--muted)"><?= htmlspecialchars(implode(', ', array_slice($p['tags'] ?? [], 0, 3))) ?></td>
-                <td><?= !empty($p['published']) ? '<span style="color:#10b981">✓ Опубликовано</span>' : '<span style="color:var(--muted)">Черновик</span>' ?></td>
-                <td><?= date('d.m.Y', strtotime($p['date'])) ?></td>
+                <td>
+                <?php
+                $isScheduled = !empty($p['published']) && !empty($p['publish_at']) && strtotime($p['publish_at']) > time();
+                if ($isScheduled):
+                    $diff = strtotime($p['publish_at']) - time();
+                    if ($diff < 3600) $when = 'через ' . max(1, (int)round($diff/60)) . ' мин.';
+                    elseif ($diff < 86400) $when = 'через ' . (int)round($diff/3600) . ' ч.';
+                    else $when = 'через ' . (int)round($diff/86400) . ' дн.';
+                ?>
+                    <span style="color:#f59e0b;" title="<?= htmlspecialchars(date('d.m.Y H:i', strtotime($p['publish_at']))) ?>">⏰ Запланировано (<?= $when ?>)</span>
+                <?php elseif (!empty($p['published'])): ?>
+                    <span style="color:#10b981">✓ Опубликовано</span>
+                <?php else: ?>
+                    <span style="color:var(--muted)">Черновик</span>
+                <?php endif; ?>
+                </td>
+                <td>
+                    <?php if ($isScheduled): ?>
+                        <?= date('d.m.Y H:i', strtotime($p['publish_at'])) ?>
+                    <?php else: ?>
+                        <?= date('d.m.Y', strtotime($p['date'])) ?>
+                    <?php endif; ?>
+                </td>
                 <td>
                     <a href="<?= BASE_URL ?>?route=post/<?= urlencode($p['slug']) ?>" target="_blank">Открыть</a> ·
                     <a href="?route=admin/posts&delete=<?= urlencode($p['id']) ?>&csrf=<?= Auth::csrf() ?>" onclick="return confirm('Удалить статью?')" style="color:#ef4444">Удалить</a>

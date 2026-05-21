@@ -2,9 +2,18 @@
 // Работа со статьями
 class Posts {
     public static function all($publishedOnly = true) {
+        // Сначала проверим — может, какие-то запланированные посты пора публиковать
+        self::processScheduled();
+
         $posts = Storage::read('posts');
         if ($publishedOnly) {
-            $posts = array_filter($posts, fn($p) => !empty($p['published']));
+            $now = time();
+            $posts = array_filter($posts, function($p) use ($now) {
+                if (empty($p['published'])) return false;
+                // Запланированные на будущее — скрыты
+                if (!empty($p['publish_at']) && strtotime($p['publish_at']) > $now) return false;
+                return true;
+            });
         }
         // Сортировка: sticky сверху, потом по дате (новые сверху)
         usort($posts, function($a, $b) {
@@ -14,6 +23,24 @@ class Posts {
             return strcmp($b['date'] ?? '', $a['date'] ?? '');
         });
         return array_values($posts);
+    }
+
+    // Проверяет запланированные посты и рассылает уведомления, когда наступает срок
+    public static function processScheduled() {
+        $posts = Storage::read('posts');
+        $now = time();
+        $changed = false;
+        foreach ($posts as &$p) {
+            if (empty($p['published']) || empty($p['publish_at'])) continue;
+            if (!empty($p['notified'])) continue;
+            $ts = strtotime($p['publish_at']);
+            if ($ts && $ts <= $now) {
+                // Триггерим уведомление
+                self::maybeNotify($p, false, false);
+                $changed = true;
+            }
+        }
+        // maybeNotify сам пишет в Storage через markNotified, ничего дополнительно сохранять не нужно
     }
 
     public static function byCategory($categoryKey) {
@@ -79,10 +106,18 @@ class Posts {
     }
 
     public static function bySlug($slug) {
+        self::processScheduled();
         foreach (Storage::read('posts') as $p) {
             if (($p['slug'] ?? '') === $slug) return $p;
         }
         return null;
+    }
+
+    // Проверка — виден ли пост публично прямо сейчас
+    public static function isLive($post) {
+        if (empty($post['published'])) return false;
+        if (!empty($post['publish_at']) && strtotime($post['publish_at']) > time()) return false;
+        return true;
     }
 
     public static function byId($id) {
@@ -123,6 +158,8 @@ class Posts {
     // Отправляет уведомления подписчикам при первой публикации
     private static function maybeNotify($post, $wasPublished, $alreadyNotified) {
         if (empty($post['published']) || $alreadyNotified) return;
+        // Если задана дата публикации в будущем — рассылка отложена
+        if (!empty($post['publish_at']) && strtotime($post['publish_at']) > time()) return;
         if (!class_exists('Subscribers') || !class_exists('Mailer')) return;
         $subs = Subscribers::all(true);
         if (empty($subs)) {

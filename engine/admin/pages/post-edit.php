@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::checkCsrf($_POST['csrf'] ?? '
         'sticky' => !empty($_POST['sticky']),
         'title_on_cover' => !empty($_POST['title_on_cover']),
         'cover_overlay_type' => $_POST['cover_overlay_type'] ?? 'title',
+        'publish_at' => !empty($_POST['publish_at']) ? date('Y-m-d H:i:s', strtotime($_POST['publish_at'])) : '',
         'content' => is_array($contentArr) ? $contentArr : ['blocks' => []],
         'published' => !empty($_POST['published']),
     ];
@@ -34,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::checkCsrf($_POST['csrf'] ?? '
     }
 }
 
-$post = $post ?: ['title'=>'','slug'=>'','description'=>'','category'=>'','cover'=>'','tags'=>[],'sticky'=>false,'title_on_cover'=>false,'cover_overlay_type'=>'title','content'=>['blocks'=>[]],'published'=>false,'id'=>''];
+$post = $post ?: ['title'=>'','slug'=>'','description'=>'','category'=>'','cover'=>'','tags'=>[],'sticky'=>false,'title_on_cover'=>false,'cover_overlay_type'=>'title','publish_at'=>'','content'=>['blocks'=>[]],'published'=>false,'id'=>''];
 $cats = Categories::all();
 ?>
 <div class="admin-header">
@@ -340,9 +341,48 @@ $cats = Categories::all();
         <input type="text" name="tags" value="<?= htmlspecialchars(implode(', ', $post['tags'] ?? [])) ?>" placeholder="например: php, веб, дизайн">
     </div>
 
-    <div class="form-row" style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+    <div class="form-row" style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:center;">
         <label><input type="checkbox" name="published" value="1" <?= !empty($post['published'])?'checked':'' ?>> Опубликовать</label>
         <label><input type="checkbox" name="sticky" value="1" <?= !empty($post['sticky'])?'checked':'' ?>> 📌 Закрепить наверху</label>
+    </div>
+
+    <div class="form-row">
+        <label>Запланированная публикация</label>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="datetime-local" name="publish_at" id="publish-at"
+                   value="<?= htmlspecialchars(!empty($post['publish_at']) ? date('Y-m-d\TH:i', strtotime($post['publish_at'])) : '') ?>"
+                   style="max-width:240px;">
+            <button type="button" class="btn" id="clear-publish-at">Очистить</button>
+            <span id="publish-at-hint" style="font-size:13px; color:var(--muted);"></span>
+        </div>
+        <div class="hint" style="margin-top:6px;">Если время указано и оно в будущем — статья появится на сайте в этот момент и подписчики получат уведомление автоматически. Чекбокс «Опубликовать» при этом должен быть включён.</div>
+        <script>
+        (function(){
+            const inp = document.getElementById('publish-at');
+            const hint = document.getElementById('publish-at-hint');
+            const clr = document.getElementById('clear-publish-at');
+            function upd() {
+                if (!inp.value) { hint.textContent = ''; return; }
+                const d = new Date(inp.value);
+                const now = new Date();
+                if (d > now) {
+                    const diff = Math.round((d - now) / 60000);
+                    let txt;
+                    if (diff < 60) txt = 'через ' + diff + ' мин.';
+                    else if (diff < 60*24) txt = 'через ' + Math.round(diff/60) + ' ч.';
+                    else txt = 'через ' + Math.round(diff/60/24) + ' дн.';
+                    hint.textContent = '⏰ Будет опубликовано ' + txt;
+                    hint.style.color = 'var(--accent)';
+                } else {
+                    hint.textContent = 'Дата в прошлом — статья опубликуется сразу';
+                    hint.style.color = 'var(--muted)';
+                }
+            }
+            inp.addEventListener('input', upd);
+            clr.addEventListener('click', () => { inp.value = ''; upd(); });
+            upd();
+        })();
+        </script>
     </div>
 
     <div id="autosave-status" style="font-size:12px;color:var(--muted);margin-bottom:1rem;"></div>
@@ -449,6 +489,7 @@ function readForm() {
             const r = f.querySelector('input[name="cover_overlay_type"]:checked');
             return r ? r.value : 'title';
         })(),
+        publish_at: f['publish_at'] ? f['publish_at'].value : '',
         published: f.published.checked
     };
 }
