@@ -1168,6 +1168,19 @@ body.mobile-nav-open .nav-toggle-icon-close {
   z-index: 90;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
+  transition: transform 0.25s ease;
+  will-change: transform;
+}
+/* Плавное скрытие/появление шапки и ленты на мобильных */
+.navbar {
+  transition: transform 0.25s ease;
+  will-change: transform;
+}
+body.nav-hidden .navbar {
+  transform: translateY(-100%);
+}
+body.nav-hidden .mobile-cats {
+  transform: translateY(calc(-100% - var(--nav-h)));
 }
 .mobile-cats-track {
   display: flex;

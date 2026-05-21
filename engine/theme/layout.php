@@ -167,6 +167,42 @@ document.addEventListener('click', e => {
     }
 })();
 
+// Автоскрытие шапки и мобильной ленты при скролле вниз (Instagram/Twitter-style)
+(function(){
+    if (!window.matchMedia('(max-width: 720px)').matches) return;
+    let lastY = window.scrollY;
+    let ticking = false;
+    const DELTA = 6;
+    const TOP_THRESHOLD = 80;
+
+    function update() {
+        const y = window.scrollY;
+        const diff = y - lastY;
+        // Игнор мелких движений
+        if (Math.abs(diff) < DELTA) { ticking = false; return; }
+        // У самого верха — всегда показано
+        if (y < TOP_THRESHOLD) {
+            document.body.classList.remove('nav-hidden');
+        } else if (diff > 0) {
+            // Скроллим вниз — прячем
+            document.body.classList.add('nav-hidden');
+            // На всякий случай закрываем мобильное меню
+            document.body.classList.remove('mobile-nav-open');
+        } else {
+            // Скроллим вверх — показываем
+            document.body.classList.remove('nav-hidden');
+        }
+        lastY = y;
+        ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(update);
+            ticking = true;
+        }
+    }, { passive: true });
+})();
+
 function toggleMobileNav() {
     document.body.classList.toggle('mobile-nav-open');
 }

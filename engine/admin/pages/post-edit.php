@@ -82,8 +82,6 @@ $cats = Categories::all();
             <input type="file" id="cover-file" accept="image/*" style="display:none;">
             <button type="button" class="btn" onclick="document.getElementById('cover-file').click()">Загрузить</button>
         </div>
-        <?php if (!empty($post['cover'])): ?><img src="<?= htmlspecialchars($post['cover']) ?>" style="max-width:200px;margin-top:.5rem;border-radius:8px;"><?php endif; ?>
-
         <div style="margin-top:.75rem; padding:.75rem; background:var(--secondary); border-radius:8px;">
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                 <input type="checkbox" name="title_on_cover" id="title-on-cover" value="1" <?= !empty($post['title_on_cover'])?'checked':'' ?>>
@@ -104,11 +102,100 @@ $cats = Categories::all();
                 </label>
             </div>
         </div>
+
+        <!-- Мини-превью карточки -->
+        <div class="card-preview-wrap" style="margin-top:1rem;">
+            <div class="card-preview-label" style="font-size:12px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Превью карточки</div>
+            <div class="card-preview" id="card-preview" style="max-width:340px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--card);">
+                <div class="cp-cover" id="cp-cover" style="position:relative; aspect-ratio:16/9; background:var(--secondary); overflow:hidden;">
+                    <img id="cp-img" src="<?= htmlspecialchars($post['cover'] ?? '') ?>" alt="" style="width:100%; height:100%; object-fit:cover; display:<?= !empty($post['cover'])?'block':'none' ?>;">
+                    <div id="cp-empty" style="display:<?= empty($post['cover'])?'flex':'none' ?>; position:absolute; inset:0; align-items:center; justify-content:center; color:var(--muted); font-size:13px;">Обложка не задана</div>
+                    <div id="cp-gradient" style="display:none; position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0.75) 100%); pointer-events:none;"></div>
+                    <div id="cp-overlay" style="display:none; position:absolute; left:14px; right:14px; bottom:12px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.5);">
+                        <span id="cp-cat" style="display:none; padding:3px 10px; background:rgba(255,255,255,0.18); backdrop-filter:blur(6px); border-radius:999px; font-size:10.5px; font-weight:600; letter-spacing:0.02em; text-transform:uppercase; margin-bottom:6px;"></span>
+                        <div id="cp-title-overlay" style="display:none; font-size:0.95rem; font-weight:700; line-height:1.3; margin-top:6px;"></div>
+                    </div>
+                </div>
+                <div class="cp-body" style="padding:0.85rem 1rem 1rem;">
+                    <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--muted); margin-bottom:6px;">
+                        <span id="cp-body-cat" style="color:var(--accent); font-weight:600;"></span>
+                        <span><?= date('d.m.Y') ?></span>
+                    </div>
+                    <div id="cp-body-title" style="font-size:1rem; font-weight:600; line-height:1.35; margin-bottom:6px;">Заголовок статьи</div>
+                    <div id="cp-body-desc" style="font-size:13px; color:var(--muted); line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;"></div>
+                </div>
+            </div>
+        </div>
+
         <script>
         (function(){
-            const cb = document.getElementById('title-on-cover');
-            const opts = document.getElementById('cover-overlay-options');
-            if (cb && opts) cb.addEventListener('change', () => { opts.style.display = cb.checked ? '' : 'none'; });
+            const $ = (id) => document.getElementById(id);
+            const cb = $('title-on-cover');
+            const opts = $('cover-overlay-options');
+            const coverInput = $('cover-url');
+            const titleInput = document.querySelector('input[name="title"]');
+            const descInput = document.querySelector('textarea[name="description"]');
+            const catSelect = document.querySelector('select[name="category"]');
+
+            function getCatName() {
+                if (!catSelect || !catSelect.value) return '';
+                const opt = catSelect.options[catSelect.selectedIndex];
+                return opt ? opt.textContent.trim() : '';
+            }
+            function getOverlayType() {
+                const r = document.querySelector('input[name="cover_overlay_type"]:checked');
+                return r ? r.value : 'title';
+            }
+
+            function refresh() {
+                const url = (coverInput.value || '').trim();
+                const title = (titleInput.value || '').trim() || 'Заголовок статьи';
+                const desc = (descInput.value || '').trim();
+                const catName = getCatName();
+                const hasOverlay = cb.checked && url;
+                const type = getOverlayType();
+
+                // Изображение
+                if (url) {
+                    $('cp-img').src = url;
+                    $('cp-img').style.display = 'block';
+                    $('cp-empty').style.display = 'none';
+                } else {
+                    $('cp-img').style.display = 'none';
+                    $('cp-empty').style.display = 'flex';
+                }
+
+                // Оверлей
+                $('cp-gradient').style.display = hasOverlay ? 'block' : 'none';
+                $('cp-overlay').style.display = hasOverlay ? 'block' : 'none';
+
+                const showCat = hasOverlay && (type === 'category' || type === 'both') && catName;
+                const showTitle = hasOverlay && (type === 'title' || type === 'both');
+                $('cp-cat').style.display = showCat ? 'inline-block' : 'none';
+                $('cp-cat').textContent = catName;
+                $('cp-title-overlay').style.display = showTitle ? 'block' : 'none';
+                $('cp-title-overlay').textContent = title;
+
+                // Тело карточки
+                $('cp-body-cat').textContent = catName;
+                $('cp-body-cat').style.display = catName ? 'inline' : 'none';
+                $('cp-body-title').textContent = title;
+                $('cp-body-desc').textContent = desc;
+                $('cp-body-desc').style.display = desc ? '-webkit-box' : 'none';
+
+                // Опции оверлея
+                opts.style.display = cb.checked ? '' : 'none';
+            }
+
+            // Слушатели
+            [coverInput, titleInput, descInput].forEach(el => el && el.addEventListener('input', refresh));
+            catSelect && catSelect.addEventListener('change', refresh);
+            cb.addEventListener('change', refresh);
+            document.querySelectorAll('input[name="cover_overlay_type"]').forEach(r => r.addEventListener('change', refresh));
+
+            // Глобальный хук — чтобы загрузка обложки тоже обновляла превью
+            window.refreshCardPreview = refresh;
+            refresh();
         })();
         </script>
     </div>
@@ -317,6 +404,7 @@ if (coverFile) coverFile.addEventListener('change', async (e) => {
     const data = await res.json();
     if (data.success) {
         document.getElementById('cover-url').value = data.url;
+        if (typeof window.refreshCardPreview === 'function') window.refreshCardPreview();
     } else {
         alert(data.error || 'Ошибка');
     }
