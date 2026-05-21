@@ -112,35 +112,101 @@ class Posts {
                     break;
                 case 'list':
                     $tag = ($d['style'] ?? 'unordered') === 'ordered' ? 'ol' : 'ul';
-                    $html .= "<{$tag}>";
-                    foreach ($d['items'] ?? [] as $li) $html .= '<li>' . $li . '</li>';
-                    $html .= "</{$tag}>";
+                    $html .= self::renderList($d['items'] ?? [], $tag);
+                    break;
+                case 'checklist':
+                    $html .= '<ul class="ejs-checklist">';
+                    foreach ($d['items'] ?? [] as $it) {
+                        $checked = !empty($it['checked']) ? ' checked' : '';
+                        $text = $it['text'] ?? '';
+                        $html .= '<li class="ejs-check-item' . ($checked ? ' is-checked' : '') . '"><input type="checkbox" disabled' . $checked . '> <span>' . $text . '</span></li>';
+                    }
+                    $html .= '</ul>';
                     break;
                 case 'quote':
                     $html .= '<blockquote><p>' . ($d['text'] ?? '') . '</p>';
                     if (!empty($d['caption'])) $html .= '<cite>' . $d['caption'] . '</cite>';
                     $html .= '</blockquote>';
                     break;
+                case 'warning':
+                    $html .= '<div class="ejs-warning">';
+                    if (!empty($d['title'])) $html .= '<div class="ejs-warning-title">⚠ ' . htmlspecialchars($d['title']) . '</div>';
+                    if (!empty($d['message'])) $html .= '<div class="ejs-warning-message">' . $d['message'] . '</div>';
+                    $html .= '</div>';
+                    break;
                 case 'image':
                     $url = $d['file']['url'] ?? ($d['url'] ?? '');
-                    if ($url) $html .= '<figure><img src="' . htmlspecialchars($url) . '" alt="' . htmlspecialchars($d['caption'] ?? '') . '">';
-                    if (!empty($d['caption'])) $html .= '<figcaption>' . $d['caption'] . '</figcaption>';
-                    if ($url) $html .= '</figure>';
+                    if ($url) {
+                        $classes = ['ejs-image'];
+                        if (!empty($d['withBorder'])) $classes[] = 'with-border';
+                        if (!empty($d['stretched'])) $classes[] = 'stretched';
+                        if (!empty($d['withBackground'])) $classes[] = 'with-background';
+                        $html .= '<figure class="' . implode(' ', $classes) . '"><img src="' . htmlspecialchars($url) . '" alt="' . htmlspecialchars($d['caption'] ?? '') . '">';
+                        if (!empty($d['caption'])) $html .= '<figcaption>' . $d['caption'] . '</figcaption>';
+                        $html .= '</figure>';
+                    }
                     break;
                 case 'code':
                     $html .= '<pre><code>' . htmlspecialchars($d['code'] ?? '') . '</code></pre>';
                     break;
+                case 'raw':
+                    $html .= $d['html'] ?? '';
+                    break;
                 case 'delimiter':
                     $html .= '<hr>';
                     break;
+                case 'table':
+                    $rows = $d['content'] ?? [];
+                    $withHeads = !empty($d['withHeadings']);
+                    $html .= '<div class="ejs-table-wrap"><table class="ejs-table">';
+                    foreach ($rows as $idx => $row) {
+                        $tag = ($withHeads && $idx === 0) ? 'th' : 'td';
+                        $html .= '<tr>';
+                        foreach ($row as $cell) $html .= "<{$tag}>" . $cell . "</{$tag}>";
+                        $html .= '</tr>';
+                    }
+                    $html .= '</table></div>';
+                    break;
                 case 'embed':
-                    if (!empty($d['embed'])) $html .= '<div class="embed"><iframe src="' . htmlspecialchars($d['embed']) . '" frameborder="0" allowfullscreen></iframe></div>';
+                    if (!empty($d['embed'])) {
+                        $html .= '<figure class="embed"><div class="embed-frame"><iframe src="' . htmlspecialchars($d['embed']) . '" frameborder="0" allowfullscreen></iframe></div>';
+                        if (!empty($d['caption'])) $html .= '<figcaption>' . $d['caption'] . '</figcaption>';
+                        $html .= '</figure>';
+                    }
+                    break;
+                case 'linkTool':
+                    $meta = $d['meta'] ?? [];
+                    $link = $d['link'] ?? '';
+                    if ($link) {
+                        $html .= '<a class="ejs-link" href="' . htmlspecialchars($link) . '" target="_blank" rel="noopener">';
+                        if (!empty($meta['image']['url'])) $html .= '<img src="' . htmlspecialchars($meta['image']['url']) . '">';
+                        $html .= '<div class="ejs-link-body">';
+                        if (!empty($meta['title'])) $html .= '<div class="ejs-link-title">' . htmlspecialchars($meta['title']) . '</div>';
+                        if (!empty($meta['description'])) $html .= '<div class="ejs-link-desc">' . htmlspecialchars($meta['description']) . '</div>';
+                        $html .= '<div class="ejs-link-url">' . htmlspecialchars($link) . '</div>';
+                        $html .= '</div></a>';
+                    }
                     break;
                 default:
                     if (!empty($d['text'])) $html .= '<p>' . $d['text'] . '</p>';
             }
         }
         return $html;
+    }
+
+    private static function renderList($items, $tag) {
+        $html = "<{$tag}>";
+        foreach ($items as $li) {
+            if (is_array($li)) {
+                $text = $li['content'] ?? ($li['text'] ?? '');
+                $html .= '<li>' . $text;
+                if (!empty($li['items'])) $html .= self::renderList($li['items'], $tag);
+                $html .= '</li>';
+            } else {
+                $html .= '<li>' . $li . '</li>';
+            }
+        }
+        return $html . "</{$tag}>";
     }
 
     public static function plainText($content) {

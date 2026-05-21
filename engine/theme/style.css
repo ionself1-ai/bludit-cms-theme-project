@@ -631,6 +631,138 @@ select {
   background: var(--secondary);
   margin-bottom: 0.5rem;
 }
+
+/* === Editor.js блоки === */
+.ejs-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+.ejs-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+}
+.ejs-check-item.is-checked span {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.ejs-warning {
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  color: #78350f;
+}
+[data-theme="dark"] .ejs-warning {
+  background: #422006;
+  color: #fcd34d;
+}
+.ejs-warning-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.ejs-table-wrap {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+.ejs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.ejs-table th,
+.ejs-table td {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.ejs-table th {
+  background: var(--secondary);
+  font-weight: 600;
+}
+.ejs-image.with-border img {
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: 8px;
+}
+.ejs-image.stretched img {
+  width: 100%;
+  max-width: none;
+}
+.ejs-image.with-background {
+  background: var(--secondary);
+  padding: 1rem;
+  border-radius: 8px;
+}
+.single-content mark,
+.single-content .cdx-marker {
+  background: #fef08a;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+[data-theme="dark"] .single-content mark,
+[data-theme="dark"] .single-content .cdx-marker {
+  background: #713f12;
+  color: #fef08a;
+}
+.single-content .inline-code,
+.single-content code:not(pre code) {
+  background: var(--secondary);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: "SF Mono", Menlo, monospace;
+}
+.single-content u {
+  text-decoration: underline;
+}
+.ejs-link {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 1.5rem 0;
+  text-decoration: none;
+  color: var(--fg);
+  transition: background 0.15s;
+}
+.ejs-link:hover {
+  background: var(--secondary);
+}
+.ejs-link img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.ejs-link-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.ejs-link-desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.ejs-link-url {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+/* Editor.js адаптация под тёмную тему админки */
+[data-theme="dark"] .ce-popover,
+[data-theme="dark"] .ce-toolbar__plus,
+[data-theme="dark"] .ce-toolbar__settings-btn {
+  background: var(--card);
+  color: var(--fg);
+  border-color: var(--border);
+}
+
 .login-page {
   display: flex;
   align-items: center;

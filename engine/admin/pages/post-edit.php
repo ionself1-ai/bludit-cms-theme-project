@@ -95,35 +95,69 @@ $cats = Categories::all();
     </div>
 </form>
 
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest"></script>
+<?php
+// Локальный путь к Editor.js
+$ejsBase = BASE_URL . 'assets/editorjs/';
+$ejsDir  = ROOT_PATH . '/assets/editorjs/';
+$ejsReady = file_exists($ejsDir . 'editorjs.js') && file_exists($ejsDir . 'header.js');
+?>
+<?php if (!$ejsReady): ?>
+<div class="alert alert-error">
+    Файлы Editor.js не установлены локально.
+    <a href="#" id="install-editor-btn" class="btn" style="margin-left:10px;">Установить сейчас</a>
+</div>
+<script>
+document.getElementById('install-editor-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.target.textContent = 'Загрузка...';
+    const r = await fetch('<?= BASE_URL ?>?route=admin/install-editor');
+    const d = await r.json();
+    if (d.ok) location.reload();
+    else alert('Ошибка установки');
+});
+</script>
+<?php else: ?>
+<script src="<?= $ejsBase ?>editorjs.js"></script>
+<script src="<?= $ejsBase ?>header.js"></script>
+<script src="<?= $ejsBase ?>list.js"></script>
+<script src="<?= $ejsBase ?>checklist.js"></script>
+<script src="<?= $ejsBase ?>quote.js"></script>
+<script src="<?= $ejsBase ?>warning.js"></script>
+<script src="<?= $ejsBase ?>image.js"></script>
+<script src="<?= $ejsBase ?>code.js"></script>
+<script src="<?= $ejsBase ?>delimiter.js"></script>
+<script src="<?= $ejsBase ?>table.js"></script>
+<script src="<?= $ejsBase ?>embed.js"></script>
+<script src="<?= $ejsBase ?>raw.js"></script>
+<script src="<?= $ejsBase ?>marker.js"></script>
+<script src="<?= $ejsBase ?>inline-code.js"></script>
+<script src="<?= $ejsBase ?>underline.js"></script>
+<script src="<?= $ejsBase ?>i18n-ru.js"></script>
 <script>
 const editor = new EditorJS({
     holder: 'editorjs',
     data: <?= json_encode($post['content'] ?: ['blocks'=>[]], JSON_UNESCAPED_UNICODE) ?>,
+    i18n: window.EDITORJS_I18N_RU,
     tools: {
-        header: Header,
-        list: List,
-        quote: Quote,
+        header: { class: Header, inlineToolbar: ['marker','bold','italic','link'], config: { placeholder: 'Заголовок', levels: [2,3,4], defaultLevel: 2 } },
+        list: { class: (window.EditorjsList || window.List), inlineToolbar: true },
+        checklist: { class: Checklist, inlineToolbar: true },
+        quote: { class: Quote, inlineToolbar: true },
+        warning: { class: Warning, inlineToolbar: true, config: { titlePlaceholder: 'Заголовок', messagePlaceholder: 'Сообщение' } },
         code: CodeTool,
         delimiter: Delimiter,
-        embed: Embed,
+        table: { class: Table, inlineToolbar: true, config: { rows: 2, cols: 3 } },
+        embed: { class: Embed, config: { services: { youtube: true, vimeo: true, coub: true, twitter: true } } },
+        raw: RawTool,
+        marker: { class: Marker, shortcut: 'CMD+SHIFT+M' },
+        inlineCode: { class: InlineCode, shortcut: 'CMD+SHIFT+C' },
+        underline: Underline,
         image: {
             class: ImageTool,
-            config: {
-                endpoints: {
-                    byFile: '<?= BASE_URL ?>?route=admin/upload',
-                }
-            }
+            config: { endpoints: { byFile: '<?= BASE_URL ?>?route=admin/upload' }, captionPlaceholder: 'Подпись' }
         }
     },
-    placeholder: 'Начните писать...'
+    placeholder: 'Начните писать или нажмите «+»...'
 });
 
 document.querySelector('form').addEventListener('submit', async (e) => {
@@ -132,9 +166,13 @@ document.querySelector('form').addEventListener('submit', async (e) => {
     document.getElementById('content-json').value = JSON.stringify(data);
     e.target.submit();
 });
+</script>
+<?php endif; ?>
 
-// Загрузка обложки
-document.getElementById('cover-file').addEventListener('change', async (e) => {
+<script>
+// Загрузка обложки — работает независимо от Editor.js
+const coverFile = document.getElementById('cover-file');
+if (coverFile) coverFile.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const fd = new FormData();
