@@ -36,19 +36,41 @@
                 <a href="<?php echo DOMAIN; ?>" class="nav-link <?php echo ($WHERE_AM_I == 'home') ? 'nav-link-active' : ''; ?>">
                     Explore
                 </a>
-                <?php foreach ($categories as $category): ?>
-                <a href="<?php echo $category->permalink(); ?>" class="nav-link">
-                    <?php echo $category->name(); ?>
+
+                <?php
+                // Категории — максимально безопасный вывод
+                try {
+                    if (isset($categories) && is_object($categories)) {
+                        $catSlugs = $categories->getPublishedDB();
+                        if (!empty($catSlugs)) {
+                            foreach ($catSlugs as $catSlug) {
+                                try {
+                                    $catObj = new Category($catSlug);
+                                    echo '<a href="' . htmlspecialchars($catObj->permalink()) . '" class="nav-link">' . htmlspecialchars($catObj->name()) . '</a>';
+                                } catch (Exception $e) { /* пропуск */ }
+                            }
+                        }
+                    }
+                } catch (Exception $e) { /* категории недоступны */ }
+                ?>
+
+                <?php
+                // Статические страницы — "Обо мне"
+                if (!empty($staticContent)):
+                    foreach ($staticContent as $sp):
+                        if ($sp->slug() == 'about'):
+                            $isAboutActive = ($WHERE_AM_I == 'page' && isset($page) && $page->slug() == 'about');
+                ?>
+                <a href="<?php echo $sp->permalink(); ?>" class="nav-link <?php echo $isAboutActive ? 'nav-link-active' : ''; ?>">
+                    Обо мне
                 </a>
-                <?php endforeach; ?>
-                <?php foreach ($staticContent as $staticPage): ?>
-                    <?php if ($staticPage->slug() == 'about'): ?>
-                    <a href="<?php echo $staticPage->permalink(); ?>" class="nav-link <?php echo ($WHERE_AM_I == 'page' && isset($page) && $page->slug() == 'about') ? 'nav-link-active' : ''; ?>">
-                        Обо мне
-                    </a>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-                <a href="<?php echo DOMAIN; ?>blog" class="nav-link <?php echo ($WHERE_AM_I == 'blog') ? 'nav-link-active' : ''; ?>">
+                <?php
+                        endif;
+                    endforeach;
+                endif;
+                ?>
+
+                <a href="<?php echo DOMAIN; ?>" class="nav-link <?php echo ($WHERE_AM_I == 'blog') ? 'nav-link-active' : ''; ?>">
                     Блог
                 </a>
 
@@ -58,13 +80,6 @@
                         More <span class="chevron">▾</span>
                     </button>
                     <div class="dropdown-menu">
-                        <?php foreach ($staticContent as $staticPage): ?>
-                            <?php if (in_array($staticPage->slug(), ['privacy-policy', 'terms-of-service', 'privacy', 'terms'])): ?>
-                            <a href="<?php echo $staticPage->permalink(); ?>" class="dropdown-item">
-                                <?php echo $staticPage->title(); ?>
-                            </a>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
                         <a href="<?php echo DOMAIN; ?>privacy-policy" class="dropdown-item">Privacy Policy</a>
                         <a href="<?php echo DOMAIN; ?>terms-of-service" class="dropdown-item">Terms of Service</a>
                     </div>
@@ -163,11 +178,9 @@
             <div class="footer-links">
                 <a href="<?php echo DOMAIN; ?>">Explore</a>
                 <a href="<?php echo DOMAIN; ?>blog">Блог</a>
-                <?php foreach ($staticContent as $staticPage): ?>
-                    <?php if ($staticPage->slug() == 'about'): ?>
-                    <a href="<?php echo $staticPage->permalink(); ?>">Обо мне</a>
-                    <?php endif; ?>
-                <?php endforeach; ?>
+                <?php if (!empty($staticContent)): foreach ($staticContent as $sp): if ($sp->slug() == 'about'): ?>
+                    <a href="<?php echo $sp->permalink(); ?>">Обо мне</a>
+                <?php endif; endforeach; endif; ?>
             </div>
             <p class="footer-copy">© <?php echo date('Y'); ?> <?php echo $site->title(); ?></p>
         </div>
