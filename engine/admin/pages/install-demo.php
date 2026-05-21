@@ -165,9 +165,22 @@ foreach ($demoPosts as $dp) {
     $created++;
 }
 
+// Обновляем профиль автора, если он пустой
+$users = Storage::read('users');
+$profileUpdated = false;
+if (!empty($users) && empty($users[0]['avatar'])) {
+    $users[0]['avatar'] = 'https://cdn.poehali.dev/projects/9f6e2264-476d-4c4b-a9c4-d0d1ec9ddf3f/files/281daa50-b47c-480f-aa67-b8e87e151ea3.jpg';
+    if (empty($users[0]['bio'])) {
+        $users[0]['bio'] = 'Автор и редактор блога. Пишу о технологиях, дизайне и жизни.';
+    }
+    Storage::write('users', $users);
+    $profileUpdated = true;
+}
+
 echo json_encode([
     'ok' => true,
     'categories_added' => count(array_diff(array_column($demoCats, 'key'), $existingKeys)),
     'posts_added' => $created,
     'posts_skipped' => $skipped,
+    'profile_updated' => $profileUpdated,
 ]);
