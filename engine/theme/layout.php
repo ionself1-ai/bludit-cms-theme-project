@@ -27,7 +27,7 @@ if (!empty($category) && is_array($category)) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru"<?= !empty($user) ? ' data-no-track="1"' : '' ?>>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -335,6 +335,28 @@ document.addEventListener('click', e => {
             n.querySelectorAll && n.querySelectorAll(selector).forEach(attach);
         }));
     }).observe(document.body, { childList: true, subtree: true });
+})();
+
+// Трекинг посещений (анонимный pixel)
+(function(){
+    try {
+        // Не трекаем админов и ботов (грубая проверка на стороне клиента)
+        if (document.documentElement.dataset.noTrack === '1') return;
+        if (navigator.webdriver) return;
+        const payload = {
+            path: location.pathname + location.search,
+            referer: document.referrer || '',
+            postId: <?= !empty($post['id']) ? json_encode($post['id']) : '""' ?>
+        };
+        const url = '<?= BASE_URL ?>?route=track';
+        // sendBeacon — не блокирует выгрузку страницы
+        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(url, blob);
+        } else {
+            fetch(url, { method: 'POST', body: JSON.stringify(payload), headers: {'Content-Type':'application/json'}, keepalive: true }).catch(()=>{});
+        }
+    } catch(_) {}
 })();
 
 // PWA: регистрация Service Worker + кнопка «Установить»

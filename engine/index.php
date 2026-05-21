@@ -10,6 +10,7 @@ require __DIR__ . '/lib/Uploader.php';
 require __DIR__ . '/lib/Subscribers.php';
 require __DIR__ . '/lib/Mailer.php';
 require __DIR__ . '/lib/Importer.php';
+require __DIR__ . '/lib/Stats.php';
 require __DIR__ . '/theme/icons.php';
 
 // Первый запуск — создаём админа
@@ -70,6 +71,9 @@ if ($section === 'suggest') {
 }
 if ($section === 'manifest') {
     require __DIR__ . '/lib/manifest.php'; exit;
+}
+if ($section === 'track') {
+    require __DIR__ . '/lib/track-handler.php'; exit;
 }
 
 if ($section === 'category' && !empty($parts[1])) {

@@ -18,6 +18,7 @@
             <a href="<?= BASE_URL ?>?route=admin/categories" class="<?= str_starts_with($action ?? '', 'categor') ? 'active' : '' ?>"><?= Icon::svg('folder', 16) ?> <span>Категории</span></a>
             <a href="<?= BASE_URL ?>?route=admin/pages" class="<?= str_starts_with($action ?? '', 'page') ? 'active' : '' ?>"><?= Icon::svg('file', 16) ?> <span>Страницы</span></a>
             <a href="<?= BASE_URL ?>?route=admin/subscribers" class="<?= str_starts_with($action ?? '', 'subscriber') ? 'active' : '' ?>"><?= Icon::svg('mail', 16) ?> <span>Подписчики</span></a>
+            <a href="<?= BASE_URL ?>?route=admin/stats" class="<?= ($action === 'stats') ? 'active' : '' ?>"><?= Icon::svg('bar-chart', 16) ?> <span>Статистика</span></a>
             <a href="<?= BASE_URL ?>?route=admin/profile" class="<?= ($action === 'profile') ? 'active' : '' ?>"><?= Icon::svg('user', 16) ?> <span>Профиль</span></a>
             <a href="<?= BASE_URL ?>?route=admin/settings" class="<?= ($action === 'settings') ? 'active' : '' ?>"><?= Icon::svg('settings', 16) ?> <span>Настройки</span></a>
             <div style="height:1px; background:var(--border); margin:1rem 0;"></div>
