@@ -15,12 +15,16 @@ $posts = Posts::all(false);
 
 <div class="admin-card">
     <table class="admin-table">
-        <thead><tr><th>Название</th><th>Категория</th><th>Статус</th><th>Дата</th><th></th></tr></thead>
+        <thead><tr><th>Название</th><th>Категория</th><th>Теги</th><th>Статус</th><th>Дата</th><th></th></tr></thead>
         <tbody>
         <?php foreach ($posts as $p): $c = Categories::get($p['category'] ?? ''); ?>
             <tr>
-                <td><a href="<?= BASE_URL ?>?route=admin/post-edit&id=<?= urlencode($p['id']) ?>"><?= htmlspecialchars($p['title']) ?></a></td>
+                <td>
+                    <?php if (!empty($p['sticky'])): ?><span title="Закреплено">📌</span> <?php endif; ?>
+                    <a href="<?= BASE_URL ?>?route=admin/post-edit&id=<?= urlencode($p['id']) ?>"><?= htmlspecialchars($p['title']) ?></a>
+                </td>
                 <td><?= $c ? htmlspecialchars($c['name']) : '—' ?></td>
+                <td style="font-size:12px;color:var(--muted)"><?= htmlspecialchars(implode(', ', array_slice($p['tags'] ?? [], 0, 3))) ?></td>
                 <td><?= !empty($p['published']) ? '<span style="color:#10b981">✓ Опубликовано</span>' : '<span style="color:var(--muted)">Черновик</span>' ?></td>
                 <td><?= date('d.m.Y', strtotime($p['date'])) ?></td>
                 <td>
@@ -29,7 +33,7 @@ $posts = Posts::all(false);
                 </td>
             </tr>
         <?php endforeach; ?>
-        <?php if (empty($posts)): ?><tr><td colspan="5" style="color:var(--muted);text-align:center;padding:2rem">Статей пока нет. <a href="<?= BASE_URL ?>?route=admin/post-edit">Создать первую</a></td></tr><?php endif; ?>
+        <?php if (empty($posts)): ?><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:2rem">Статей пока нет. <a href="<?= BASE_URL ?>?route=admin/post-edit">Создать первую</a></td></tr><?php endif; ?>
         </tbody>
     </table>
 </div>

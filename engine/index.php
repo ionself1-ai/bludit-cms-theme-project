@@ -47,29 +47,59 @@ $publicRoutes = [
     'home', 'category', 'post', 'page', 'search',
 ];
 
+// Спец-роуты без layout
+if ($section === 'rss') {
+    require THEME_PATH . '/rss.php'; exit;
+}
+if ($section === 'sitemap') {
+    require THEME_PATH . '/sitemap.php'; exit;
+}
+
 if ($section === 'category' && !empty($parts[1])) {
     $category = Categories::get($parts[1]);
-    if (!$category) { http_response_code(404); echo 'Категория не найдена'; exit; }
-    $allPosts = Posts::byCategory($category['key']);
+    if (!$category) { http_response_code(404); $template = '404'; $pageTitle = 'Не найдено'; }
+    else {
+        $allPosts = Posts::byCategory($category['key']);
+        $pag = Posts::paginate($allPosts, (int)($_GET['page'] ?? 1), Settings::get('posts_per_page', 9));
+        $pageTitle = $category['name'];
+        $template = 'category';
+    }
+} elseif ($section === 'tag' && !empty($parts[1])) {
+    $tag = urldecode($parts[1]);
+    $allPosts = Posts::byTag($tag);
     $pag = Posts::paginate($allPosts, (int)($_GET['page'] ?? 1), Settings::get('posts_per_page', 9));
-    $pageTitle = $category['name'];
-    $template = 'category';
+    $pageTitle = '#' . $tag;
+    $template = 'tag';
 } elseif ($section === 'post' && !empty($parts[1])) {
     $post = Posts::bySlug($parts[1]);
-    if (!$post || empty($post['published'])) { http_response_code(404); echo 'Статья не найдена'; exit; }
-    $pageTitle = $post['title'];
-    $template = 'post';
+    if (!$post || empty($post['published'])) { http_response_code(404); $template = '404'; $pageTitle = 'Не найдено'; }
+    else {
+        $pageTitle = $post['title'];
+        $template = 'post';
+    }
 } elseif ($section === 'page' && !empty($parts[1])) {
     $page = Pages::get($parts[1]);
-    if (!$page) { http_response_code(404); echo 'Страница не найдена'; exit; }
-    $pageTitle = $page['title'];
-    $template = 'page';
+    if (!$page) { http_response_code(404); $template = '404'; $pageTitle = 'Не найдено'; }
+    else { $pageTitle = $page['title']; $template = 'page'; }
+} elseif ($section === 'author') {
+    $author = Auth::user();
+    $allPosts = Posts::all(true);
+    $pag = Posts::paginate($allPosts, (int)($_GET['page'] ?? 1), Settings::get('posts_per_page', 9));
+    $pageTitle = $author['name'] ?? 'Автор';
+    $template = 'author';
 } elseif ($section === 'search') {
     $query = $_GET['q'] ?? '';
     $allPosts = Posts::search($query);
     $pag = Posts::paginate($allPosts, (int)($_GET['page'] ?? 1), Settings::get('posts_per_page', 9));
     $pageTitle = 'Поиск';
     $template = 'search';
+} elseif ($section === 'tags') {
+    $tagsCloud = Posts::allTags();
+    $pageTitle = 'Все теги';
+    $template = 'tags';
+} elseif (!in_array($section, ['home', '']) && $section !== '') {
+    http_response_code(404);
+    $template = '404'; $pageTitle = 'Не найдено';
 } else {
     $allPosts = Posts::all(true);
     $pag = Posts::paginate($allPosts, (int)($_GET['page'] ?? 1), Settings::get('posts_per_page', 9));

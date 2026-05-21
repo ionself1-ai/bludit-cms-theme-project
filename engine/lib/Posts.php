@@ -6,13 +6,60 @@ class Posts {
         if ($publishedOnly) {
             $posts = array_filter($posts, fn($p) => !empty($p['published']));
         }
-        // Сортировка по дате (новые сверху)
-        usort($posts, fn($a, $b) => strcmp($b['date'] ?? '', $a['date'] ?? ''));
+        // Сортировка: sticky сверху, потом по дате (новые сверху)
+        usort($posts, function($a, $b) {
+            $sa = !empty($a['sticky']) ? 1 : 0;
+            $sb = !empty($b['sticky']) ? 1 : 0;
+            if ($sa !== $sb) return $sb - $sa;
+            return strcmp($b['date'] ?? '', $a['date'] ?? '');
+        });
         return array_values($posts);
     }
 
     public static function byCategory($categoryKey) {
         return array_values(array_filter(self::all(true), fn($p) => ($p['category'] ?? '') === $categoryKey));
+    }
+
+    public static function byTag($tag) {
+        $tag = mb_strtolower($tag);
+        return array_values(array_filter(self::all(true), function($p) use ($tag) {
+            $tags = array_map('mb_strtolower', $p['tags'] ?? []);
+            return in_array($tag, $tags, true);
+        }));
+    }
+
+    public static function allTags() {
+        $all = [];
+        foreach (self::all(true) as $p) {
+            foreach ($p['tags'] ?? [] as $t) {
+                $t = trim($t);
+                if ($t === '') continue;
+                $key = mb_strtolower($t);
+                $all[$key] = ($all[$key] ?? 0) + 1;
+            }
+        }
+        arsort($all);
+        return $all;
+    }
+
+    public static function related($post, $limit = 3) {
+        $tags = array_map('mb_strtolower', $post['tags'] ?? []);
+        if (empty($tags)) return [];
+        $scored = [];
+        foreach (self::all(true) as $p) {
+            if (($p['id'] ?? '') === ($post['id'] ?? '')) continue;
+            $pTags = array_map('mb_strtolower', $p['tags'] ?? []);
+            $common = count(array_intersect($tags, $pTags));
+            if ($common > 0) $scored[] = ['post' => $p, 'score' => $common];
+        }
+        usort($scored, fn($a, $b) => $b['score'] - $a['score']);
+        return array_map(fn($x) => $x['post'], array_slice($scored, 0, $limit));
+    }
+
+    public static function readingTime($post) {
+        $words = str_word_count(self::plainText($post['content'] ?? []), 0, "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ");
+        $min = max(1, (int)round($words / 200));
+        return $min;
     }
 
     public static function bySlug($slug) {

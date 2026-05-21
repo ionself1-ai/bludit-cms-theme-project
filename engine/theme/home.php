@@ -15,10 +15,11 @@
     <?php if (!empty($pag['items'])): ?>
     <div class="posts-grid">
         <?php foreach ($pag['items'] as $post): $cat = Categories::get($post['category'] ?? ''); ?>
-        <article class="post-card">
+        <article class="post-card <?= !empty($post['sticky']) ? 'is-sticky' : '' ?>">
             <?php if (!empty($post['cover'])): ?>
             <a href="<?= BASE_URL ?>?route=post/<?= urlencode($post['slug']) ?>" class="post-cover">
                 <img src="<?= htmlspecialchars($post['cover']) ?>" alt="<?= htmlspecialchars($post['title']) ?>" loading="lazy">
+                <?php if (!empty($post['sticky'])): ?><span class="sticky-corner">📌</span><?php endif; ?>
             </a>
             <?php endif; ?>
             <div class="post-card-body">
@@ -33,7 +34,11 @@
                 </h2>
                 <p class="post-excerpt"><?= htmlspecialchars(Posts::excerpt($post)) ?></p>
                 <div class="post-footer">
-                    <div class="post-tags"></div>
+                    <div class="post-tags">
+                        <?php foreach (array_slice($post['tags'] ?? [], 0, 2) as $tag): ?>
+                            <a href="<?= BASE_URL ?>?route=tag/<?= urlencode($tag) ?>" class="post-tag">#<?= htmlspecialchars($tag) ?></a>
+                        <?php endforeach; ?>
+                    </div>
                     <a href="<?= BASE_URL ?>?route=post/<?= urlencode($post['slug']) ?>" class="post-read-more">Читать →</a>
                 </div>
             </div>

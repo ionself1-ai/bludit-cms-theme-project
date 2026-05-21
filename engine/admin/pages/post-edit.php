@@ -9,6 +9,8 @@ $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::checkCsrf($_POST['csrf'] ?? '')) {
     $contentJson = $_POST['content'] ?? '';
     $contentArr = json_decode($contentJson, true);
+    $tagsRaw = trim($_POST['tags'] ?? '');
+    $tags = $tagsRaw === '' ? [] : array_values(array_filter(array_map('trim', explode(',', $tagsRaw))));
     $data = [
         'id' => $_POST['id'] ?? null,
         'title' => trim($_POST['title'] ?? ''),
@@ -16,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::checkCsrf($_POST['csrf'] ?? '
         'description' => trim($_POST['description'] ?? ''),
         'category' => $_POST['category'] ?? '',
         'cover' => trim($_POST['cover'] ?? ''),
+        'tags' => $tags,
+        'sticky' => !empty($_POST['sticky']),
         'content' => is_array($contentArr) ? $contentArr : ['blocks' => []],
         'published' => !empty($_POST['published']),
     ];
@@ -28,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::checkCsrf($_POST['csrf'] ?? '
     }
 }
 
-$post = $post ?: ['title'=>'','slug'=>'','description'=>'','category'=>'','cover'=>'','content'=>['blocks'=>[]],'published'=>false,'id'=>''];
+$post = $post ?: ['title'=>'','slug'=>'','description'=>'','category'=>'','cover'=>'','tags'=>[],'sticky'=>false,'content'=>['blocks'=>[]],'published'=>false,'id'=>''];
 $cats = Categories::all();
 ?>
 <div class="admin-header">
@@ -86,8 +90,16 @@ $cats = Categories::all();
     </div>
 
     <div class="form-row">
-        <label><input type="checkbox" name="published" value="1" <?= !empty($post['published'])?'checked':'' ?>> Опубликовать</label>
+        <label>Теги (через запятую)</label>
+        <input type="text" name="tags" value="<?= htmlspecialchars(implode(', ', $post['tags'] ?? [])) ?>" placeholder="например: php, веб, дизайн">
     </div>
+
+    <div class="form-row" style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+        <label><input type="checkbox" name="published" value="1" <?= !empty($post['published'])?'checked':'' ?>> Опубликовать</label>
+        <label><input type="checkbox" name="sticky" value="1" <?= !empty($post['sticky'])?'checked':'' ?>> 📌 Закрепить наверху</label>
+    </div>
+
+    <div id="autosave-status" style="font-size:12px;color:var(--muted);margin-bottom:1rem;"></div>
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary" id="save-btn">Сохранить</button>
@@ -165,6 +177,94 @@ document.querySelector('form').addEventListener('submit', async (e) => {
     const data = await editor.save();
     document.getElementById('content-json').value = JSON.stringify(data);
     e.target.submit();
+});
+
+/* === АВТОСОХРАНЕНИЕ === */
+const POST_ID_KEY = 'post-draft-<?= htmlspecialchars($post['id'] ?: 'new') ?>';
+const statusEl = document.getElementById('autosave-status');
+let lastSave = '';
+let saveTimer = null;
+
+function readForm() {
+    const f = document.querySelector('form');
+    const tags = (f.tags.value || '').split(',').map(s => s.trim()).filter(Boolean);
+    return {
+        id: f.id.value || null,
+        csrf: f.csrf.value,
+        title: f.title.value,
+        slug: f.slug.value,
+        description: f.description.value,
+        category: f.category.value,
+        cover: f['cover'].value,
+        tags,
+        sticky: f.sticky.checked,
+        published: f.published.checked
+    };
+}
+
+async function autosave() {
+    if (!editor) return;
+    try {
+        const content = await editor.save();
+        const body = { ...readForm(), content };
+        const payload = JSON.stringify(body);
+        if (payload === lastSave) return;
+        statusEl.textContent = 'Сохраняю...';
+        const r = await fetch('<?= BASE_URL ?>?route=admin/autosave', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload
+        });
+        const d = await r.json();
+        if (d.ok) {
+            lastSave = payload;
+            localStorage.setItem(POST_ID_KEY, payload);
+            statusEl.textContent = '✓ Сохранено автоматически в ' + d.time;
+            // Подменяем id для последующих сохранений
+            if (d.id && !document.querySelector('[name=id]').value) {
+                document.querySelector('[name=id]').value = d.id;
+                history.replaceState(null, '', '?route=admin/post-edit&id=' + encodeURIComponent(d.id));
+            }
+        } else {
+            statusEl.textContent = '⚠ Ошибка автосохранения';
+        }
+    } catch (e) {
+        statusEl.textContent = '⚠ Не удалось сохранить';
+    }
+}
+
+function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autosave, 4000);
+}
+
+// Слушаем изменения
+['title','slug','description','category','cover','tags'].forEach(n => {
+    const el = document.querySelector('[name="'+n+'"]');
+    if (el) el.addEventListener('input', scheduleSave);
+});
+['published','sticky'].forEach(n => {
+    const el = document.querySelector('[name="'+n+'"]');
+    if (el) el.addEventListener('change', scheduleSave);
+});
+// Editor.js — следим за изменением блоков
+const ejs = document.getElementById('editorjs');
+if (ejs) new MutationObserver(scheduleSave).observe(ejs, {subtree:true, childList:true, characterData:true});
+
+// Восстановление из localStorage, если в БД пусто
+window.addEventListener('load', () => {
+    try {
+        const saved = localStorage.getItem(POST_ID_KEY);
+        if (saved && !document.querySelector('[name=title]').value) {
+            const d = JSON.parse(saved);
+            if (confirm('Найден локальный черновик. Восстановить?')) {
+                document.querySelector('[name=title]').value = d.title || '';
+                document.querySelector('[name=description]').value = d.description || '';
+                document.querySelector('[name=tags]').value = (d.tags || []).join(', ');
+                if (editor && d.content) editor.render(d.content);
+            }
+        }
+    } catch (e) {}
 });
 </script>
 <?php endif; ?>

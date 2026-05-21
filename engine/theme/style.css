@@ -632,6 +632,193 @@ select {
   margin-bottom: 0.5rem;
 }
 
+/* === Прогресс чтения === */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  background: var(--accent);
+  z-index: 999;
+  transition: width 0.1s ease-out;
+}
+
+/* === Sticky-постов === */
+.post-card.is-sticky {
+  border-color: var(--accent);
+}
+.post-card.is-sticky .post-cover {
+  position: relative;
+}
+.sticky-corner {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--bg);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.post-sticky-badge {
+  font-size: 11px;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.post-reading-time {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* === Облако тегов === */
+.tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 1rem 0;
+}
+.tag-cloud-item {
+  padding: 6px 14px;
+  background: var(--secondary);
+  border-radius: 999px;
+  color: var(--fg);
+  transition: background 0.15s;
+}
+.tag-cloud-item:hover {
+  background: var(--border);
+}
+.tag-count {
+  color: var(--muted);
+  font-size: 0.75em;
+  margin-left: 4px;
+}
+
+/* === Страница автора === */
+.author-page {
+  text-align: center;
+  padding: 2rem 0;
+}
+.author-card {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.author-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 1rem;
+  display: block;
+}
+.author-avatar-placeholder {
+  background: linear-gradient(135deg, #60a5fa, #8b5cf6);
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.author-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.author-bio {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.author-byline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1rem;
+  color: var(--fg);
+  font-size: 14px;
+}
+.author-byline-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.author-byline:hover {
+  color: var(--accent);
+}
+
+/* === Поделиться === */
+.share-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+.share-buttons span {
+  color: var(--muted);
+}
+.share-btn {
+  padding: 6px 12px;
+  background: var(--secondary);
+  border-radius: 8px;
+  color: var(--fg);
+  font-size: 13px;
+}
+.share-btn:hover {
+  background: var(--border);
+}
+
+/* === Связанные статьи === */
+.related-posts {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+.related-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+/* === Переключатель темы === */
+.theme-toggle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.theme-toggle:hover {
+  color: var(--fg);
+  background: var(--secondary);
+}
+.theme-icon-light {
+  display: none;
+}
+.theme-icon-dark {
+  display: inline;
+}
+[data-theme="dark"] .theme-icon-light {
+  display: inline;
+}
+[data-theme="dark"] .theme-icon-dark {
+  display: none;
+}
+
 /* === Editor.js блоки === */
 .ejs-checklist {
   list-style: none;

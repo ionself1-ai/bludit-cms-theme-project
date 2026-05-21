@@ -5,16 +5,24 @@ $categories = Categories::all();
 $staticPages = Pages::all();
 ?>
 <!DOCTYPE html>
-<html lang="ru" data-theme="light">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle . ' — ' . $site['site_title']) ?></title>
     <meta name="description" content="<?= htmlspecialchars($site['site_description']) ?>">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="<?= BASE_URL ?>?route=rss">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>theme/style.css">
+    <script>
+    (function(){
+        const saved = localStorage.getItem('theme');
+        const sys = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = saved || sys;
+    })();
+    </script>
 </head>
 <body>
 
@@ -52,6 +60,9 @@ $staticPages = Pages::all();
                     <input type="hidden" name="route" value="search">
                     <input type="search" name="q" class="search-input" placeholder="Поиск..." value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
                 </form>
+                <button class="icon-btn theme-toggle" onclick="toggleTheme()" title="Сменить тему" aria-label="Сменить тему">
+                    <span class="theme-icon-light">☀</span><span class="theme-icon-dark">☾</span>
+                </button>
                 <?php if (Auth::isLogged()): ?>
                     <a href="<?= BASE_URL ?>?route=admin" class="nav-link">Админка</a>
                 <?php else: ?>
@@ -77,14 +88,19 @@ $staticPages = Pages::all();
             </div>
             <div class="footer-links">
                 <a href="<?= BASE_URL ?>">Explore</a>
+                <a href="<?= BASE_URL ?>?route=tags">Теги</a>
+                <a href="<?= BASE_URL ?>?route=author">Автор</a>
                 <?php foreach ($staticPages as $sp): ?>
                     <a href="<?= BASE_URL ?>?route=page/<?= urlencode($sp['slug']) ?>"><?= htmlspecialchars($sp['title']) ?></a>
                 <?php endforeach; ?>
+                <a href="<?= BASE_URL ?>?route=rss">RSS</a>
             </div>
             <p class="footer-copy">© <?= date('Y') ?> <?= htmlspecialchars($site['site_title']) ?></p>
         </div>
     </div>
 </footer>
+
+<div class="reading-progress" id="reading-progress"></div>
 
 <script>
 function toggleDropdown(btn) {
@@ -96,6 +112,26 @@ document.addEventListener('click', e => {
         document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
     }
 });
+
+function toggleTheme() {
+    const cur = document.documentElement.dataset.theme || 'light';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('theme', next);
+}
+
+// Индикатор прогресса чтения
+const progress = document.getElementById('reading-progress');
+const article = document.querySelector('.single-content');
+if (progress && article) {
+    window.addEventListener('scroll', () => {
+        const rect = article.getBoundingClientRect();
+        const total = article.offsetHeight - window.innerHeight;
+        const scrolled = Math.min(Math.max(-rect.top, 0), total);
+        const pct = total > 0 ? (scrolled / total) * 100 : 0;
+        progress.style.width = pct + '%';
+    });
+}
 </script>
 </body>
 </html>
