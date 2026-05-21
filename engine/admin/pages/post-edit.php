@@ -120,7 +120,16 @@ $cats = Categories::all();
                         <div>Отпустите, чтобы загрузить</div>
                     </div>
                     <div id="cp-uploading" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.55); color:#fff; align-items:center; justify-content:center; font-size:13px; z-index:11;">Загрузка...</div>
+                    <button type="button" id="cp-remove" title="Удалить обложку" aria-label="Удалить обложку" style="display:none; position:absolute; top:8px; right:8px; width:32px; height:32px; border-radius:50%; border:none; background:rgba(0,0,0,0.6); color:#fff; cursor:pointer; align-items:center; justify-content:center; opacity:0; transition:opacity 0.15s, background 0.15s; z-index:12; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                 </div>
+                <style>
+                #card-preview:hover #cp-remove[data-has-cover="1"] { opacity: 1; }
+                #cp-remove[data-has-cover="1"] { display: inline-flex !important; }
+                #cp-remove:hover { background: rgba(220,38,38,0.85) !important; }
+                #cp-remove:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
+                </style>
                 <div class="cp-body" style="padding:0.85rem 1rem 1rem;">
                     <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--muted); margin-bottom:6px;">
                         <span id="cp-body-cat" style="color:var(--accent); font-weight:600;"></span>
@@ -169,6 +178,10 @@ $cats = Categories::all();
                     $('cp-img').style.display = 'none';
                     $('cp-empty').style.display = 'flex';
                 }
+
+                // Кнопка удаления — только если есть обложка
+                const rmBtn = $('cp-remove');
+                if (rmBtn) rmBtn.setAttribute('data-has-cover', url ? '1' : '0');
 
                 // Оверлей
                 $('cp-gradient').style.display = hasOverlay ? 'block' : 'none';
@@ -296,6 +309,21 @@ $cats = Categories::all();
 
             // Глобально, чтобы старый обработчик cover-file тоже мог использовать
             window.uploadCoverFile = uploadFile;
+
+            // === Удаление обложки ===
+            const removeBtn = $('cp-remove');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!coverInput.value) return;
+                    if (!confirm('Удалить обложку?')) return;
+                    coverInput.value = '';
+                    if (fileInput) fileInput.value = '';
+                    coverInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    refresh();
+                });
+            }
         })();
         </script>
     </div>
