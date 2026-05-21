@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "List bluditCMS folder",
+      "method": "GET",
+      "path": "/?prefix=bluditCMS/",
+      "expectedStatus": 200,
+      "expectedBody": {"count": "number"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
