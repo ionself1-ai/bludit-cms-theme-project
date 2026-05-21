@@ -632,6 +632,75 @@ select {
   margin-bottom: 0.5rem;
 }
 
+/* === Иконки общие === */
+.icon {
+  vertical-align: middle;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.nav-link svg,
+.dropdown-item svg,
+.filter-btn svg,
+.btn svg,
+.footer-links a svg {
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--muted);
+  pointer-events: none;
+  display: flex;
+}
+.search-input {
+  padding-left: 32px !important;
+}
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+}
+.admin-menu a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.admin-menu a svg {
+  color: var(--muted);
+}
+.admin-menu a.active svg,
+.admin-menu a:hover svg {
+  color: var(--fg);
+}
+.footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.share-buttons span svg,
+.share-btn svg {
+  vertical-align: -2px;
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.post-sticky-badge,
+.post-reading-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* === Прогресс чтения === */
 .reading-progress {
   position: fixed;

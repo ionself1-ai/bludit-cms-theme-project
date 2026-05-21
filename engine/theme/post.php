@@ -12,9 +12,9 @@ $author = Auth::user();
                     <a href="<?= BASE_URL ?>?route=category/<?= urlencode($cat['key']) ?>" class="post-category"><?= htmlspecialchars($cat['name']) ?></a>
                 <?php endif; ?>
                 <span class="post-date"><?= date('d.m.Y', strtotime($post['date'])) ?></span>
-                <span class="post-reading-time">⏱ <?= $rt ?> мин чтения</span>
+                <span class="post-reading-time"><?= Icon::svg('clock', 12) ?> <?= $rt ?> мин</span>
                 <?php if (!empty($post['sticky'])): ?>
-                    <span class="post-sticky-badge">📌 Закреплено</span>
+                    <span class="post-sticky-badge"><?= Icon::svg('pin', 12) ?> Закреплено</span>
                 <?php endif; ?>
             </div>
             <h1 class="single-title"><?= htmlspecialchars($post['title']) ?></h1>
@@ -55,11 +55,11 @@ $author = Auth::user();
         <?php endif; ?>
 
         <div class="share-buttons">
-            <span>Поделиться:</span>
+            <span><?= Icon::svg('share', 14) ?> Поделиться:</span>
             <?php $url = BASE_URL . '?route=post/' . urlencode($post['slug']); ?>
-            <a href="https://t.me/share/url?url=<?= urlencode($url) ?>&text=<?= urlencode($post['title']) ?>" target="_blank" class="share-btn">Telegram</a>
-            <a href="https://vk.com/share.php?url=<?= urlencode($url) ?>" target="_blank" class="share-btn">VK</a>
-            <a href="https://twitter.com/intent/tweet?url=<?= urlencode($url) ?>&text=<?= urlencode($post['title']) ?>" target="_blank" class="share-btn">Twitter</a>
+            <a href="https://t.me/share/url?url=<?= urlencode($url) ?>&text=<?= urlencode($post['title']) ?>" target="_blank" class="share-btn"><?= Icon::svg('telegram', 14) ?> Telegram</a>
+            <a href="https://vk.com/share.php?url=<?= urlencode($url) ?>" target="_blank" class="share-btn"><?= Icon::svg('vk', 14) ?> VK</a>
+            <a href="https://twitter.com/intent/tweet?url=<?= urlencode($url) ?>&text=<?= urlencode($post['title']) ?>" target="_blank" class="share-btn"><?= Icon::svg('twitter', 14) ?> Twitter</a>
         </div>
     </article>
 

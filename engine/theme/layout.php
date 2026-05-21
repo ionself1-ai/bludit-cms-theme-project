@@ -46,10 +46,13 @@ $staticPages = Pages::all();
                 <?php endif; endforeach; ?>
 
                 <div class="dropdown">
-                    <button class="nav-link dropdown-toggle" onclick="toggleDropdown(this)">More <span class="chevron">▾</span></button>
+                    <button class="nav-link dropdown-toggle" onclick="toggleDropdown(this)">More <?= Icon::svg('chevron-down', 14, 'chevron') ?></button>
                     <div class="dropdown-menu">
+                        <a href="<?= BASE_URL ?>?route=tags" class="dropdown-item"><?= Icon::svg('tag', 14) ?> Все теги</a>
+                        <a href="<?= BASE_URL ?>?route=author" class="dropdown-item"><?= Icon::svg('user', 14) ?> Об авторе</a>
+                        <a href="<?= BASE_URL ?>?route=rss" class="dropdown-item"><?= Icon::svg('rss', 14) ?> RSS</a>
                         <?php foreach ($staticPages as $sp): ?>
-                            <a href="<?= BASE_URL ?>?route=page/<?= urlencode($sp['slug']) ?>" class="dropdown-item"><?= htmlspecialchars($sp['title']) ?></a>
+                            <a href="<?= BASE_URL ?>?route=page/<?= urlencode($sp['slug']) ?>" class="dropdown-item"><?= Icon::svg('file', 14) ?> <?= htmlspecialchars($sp['title']) ?></a>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -58,15 +61,17 @@ $staticPages = Pages::all();
             <div class="navbar-actions">
                 <form class="search-wrap" method="get" action="<?= BASE_URL ?>">
                     <input type="hidden" name="route" value="search">
+                    <span class="search-icon"><?= Icon::svg('search', 16) ?></span>
                     <input type="search" name="q" class="search-input" placeholder="Поиск..." value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
                 </form>
                 <button class="icon-btn theme-toggle" onclick="toggleTheme()" title="Сменить тему" aria-label="Сменить тему">
-                    <span class="theme-icon-light">☀</span><span class="theme-icon-dark">☾</span>
+                    <span class="theme-icon-light"><?= Icon::svg('sun', 18) ?></span>
+                    <span class="theme-icon-dark"><?= Icon::svg('moon', 18) ?></span>
                 </button>
                 <?php if (Auth::isLogged()): ?>
-                    <a href="<?= BASE_URL ?>?route=admin" class="nav-link">Админка</a>
+                    <a href="<?= BASE_URL ?>?route=admin" class="nav-link" title="Админка"><?= Icon::svg('settings', 16) ?></a>
                 <?php else: ?>
-                    <a href="<?= BASE_URL ?>?route=admin/login" class="nav-link">Войти</a>
+                    <a href="<?= BASE_URL ?>?route=admin/login" class="nav-link" title="Войти"><?= Icon::svg('log-in', 16) ?></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -87,13 +92,13 @@ $staticPages = Pages::all();
                 <span class="logo-text"><?= htmlspecialchars($site['site_title']) ?></span>
             </div>
             <div class="footer-links">
-                <a href="<?= BASE_URL ?>">Explore</a>
-                <a href="<?= BASE_URL ?>?route=tags">Теги</a>
-                <a href="<?= BASE_URL ?>?route=author">Автор</a>
+                <a href="<?= BASE_URL ?>"><?= Icon::svg('home', 14) ?> Главная</a>
+                <a href="<?= BASE_URL ?>?route=tags"><?= Icon::svg('tag', 14) ?> Теги</a>
+                <a href="<?= BASE_URL ?>?route=author"><?= Icon::svg('user', 14) ?> Автор</a>
                 <?php foreach ($staticPages as $sp): ?>
-                    <a href="<?= BASE_URL ?>?route=page/<?= urlencode($sp['slug']) ?>"><?= htmlspecialchars($sp['title']) ?></a>
+                    <a href="<?= BASE_URL ?>?route=page/<?= urlencode($sp['slug']) ?>"><?= Icon::svg('file', 14) ?> <?= htmlspecialchars($sp['title']) ?></a>
                 <?php endforeach; ?>
-                <a href="<?= BASE_URL ?>?route=rss">RSS</a>
+                <a href="<?= BASE_URL ?>?route=rss"><?= Icon::svg('rss', 14) ?> RSS</a>
             </div>
             <p class="footer-copy">© <?= date('Y') ?> <?= htmlspecialchars($site['site_title']) ?></p>
         </div>

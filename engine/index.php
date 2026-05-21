@@ -7,6 +7,7 @@ require __DIR__ . '/lib/Categories.php';
 require __DIR__ . '/lib/Pages.php';
 require __DIR__ . '/lib/Settings.php';
 require __DIR__ . '/lib/Uploader.php';
+require __DIR__ . '/theme/icons.php';
 
 // Первый запуск — создаём админа
 $users = Storage::read('users');
