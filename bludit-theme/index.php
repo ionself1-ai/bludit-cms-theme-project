@@ -38,17 +38,14 @@
                 </a>
 
                 <?php
-                // Категории — максимально безопасный вывод
+                // Категории — обход напрямую по $categories->db (Categories extends dbList)
                 try {
-                    if (isset($categories) && is_object($categories)) {
-                        $catSlugs = $categories->getPublishedDB();
-                        if (!empty($catSlugs)) {
-                            foreach ($catSlugs as $catSlug) {
-                                try {
-                                    $catObj = new Category($catSlug);
-                                    echo '<a href="' . htmlspecialchars($catObj->permalink()) . '" class="nav-link">' . htmlspecialchars($catObj->name()) . '</a>';
-                                } catch (Exception $e) { /* пропуск */ }
-                            }
+                    if (isset($categories) && is_object($categories) && isset($categories->db) && is_array($categories->db)) {
+                        $catBaseUrl = defined('DOMAIN_CATEGORIES') ? DOMAIN_CATEGORIES : (DOMAIN . 'category/');
+                        foreach ($categories->db as $catKey => $catFields) {
+                            $catName = isset($catFields['name']) ? $catFields['name'] : $catKey;
+                            $catUrl = $catBaseUrl . $catKey;
+                            echo '<a href="' . htmlspecialchars($catUrl) . '" class="nav-link">' . htmlspecialchars($catName) . '</a>';
                         }
                     }
                 } catch (Exception $e) { /* категории недоступны */ }
