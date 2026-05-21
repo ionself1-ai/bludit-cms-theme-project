@@ -1504,6 +1504,17 @@ img.blur-up.is-loaded {
 .post-likes svg {
   color: #ef4444;
 }
+.post-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.post-views svg {
+  color: var(--muted);
+  opacity: 0.85;
+}
 
 /* ==========================================================================
    Подписка на новые статьи

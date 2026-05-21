@@ -32,6 +32,9 @@
                     <?php $lc = Posts::likes($post['id']); if ($lc > 0): ?>
                         <span class="post-likes" title="<?= $lc ?> лайков"><?= Icon::svg('heart-fill', 12) ?> <?= $lc ?></span>
                     <?php endif; ?>
+                    <?php $vc = Stats::postViews($post['id']); if ($vc > 0): ?>
+                        <span class="post-views" title="<?= number_format($vc, 0, '.', ' ') ?> просмотров"><?= Icon::svg('eye', 12) ?> <?= Stats::formatViews($vc) ?></span>
+                    <?php endif; ?>
                 </div>
                 <h2 class="post-title">
                     <a href="<?= BASE_URL ?>?route=post/<?= urlencode($post['slug']) ?>"><?= htmlspecialchars($post['title']) ?></a>

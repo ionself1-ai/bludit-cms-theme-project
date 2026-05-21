@@ -13,6 +13,8 @@ $author = Auth::user();
                 <?php endif; ?>
                 <span class="post-date"><?= date('d.m.Y', strtotime($post['date'])) ?></span>
                 <span class="post-reading-time"><?= Icon::svg('clock', 12) ?> <?= $rt ?> мин</span>
+                <?php $views = Stats::postViews($post['id']); ?>
+                <span class="post-views" title="<?= number_format($views, 0, '.', ' ') ?> просмотров"><?= Icon::svg('eye', 12) ?> <?= Stats::formatViews($views) ?></span>
                 <?php if (!empty($post['sticky'])): ?>
                     <span class="post-sticky-badge"><?= Icon::svg('pin', 12) ?> Закреплено</span>
                 <?php endif; ?>

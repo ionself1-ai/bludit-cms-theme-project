@@ -149,6 +149,40 @@ class Stats {
         ];
     }
 
+    // Суммарные просмотры поста за всё время (по всем дням)
+    // Кешируем на 10 минут, чтобы не сканировать файлы при каждом запросе
+    public static function postViews($postId) {
+        if (!$postId) return 0;
+        $cacheFile = self::dir() . '/_post_views.json';
+        $cache = file_exists($cacheFile) ? (json_decode(file_get_contents($cacheFile), true) ?: []) : [];
+        $cacheTtl = 600; // 10 минут
+        if (isset($cache[$postId]) && (time() - ($cache[$postId]['t'] ?? 0)) < $cacheTtl) {
+            return (int)$cache[$postId]['v'];
+        }
+        $total = 0;
+        $files = glob(self::dir() . '/*.json') ?: [];
+        foreach ($files as $f) {
+            $name = basename($f, '.json');
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $name)) continue;
+            $d = json_decode(file_get_contents($f), true);
+            if (is_array($d) && isset($d['posts'][$postId])) {
+                $total += (int)$d['posts'][$postId];
+            }
+        }
+        $cache[$postId] = ['v' => $total, 't' => time()];
+        @file_put_contents($cacheFile, json_encode($cache), LOCK_EX);
+        return $total;
+    }
+
+    // Форматирование: 1234 → 1.2k, 12345 → 12k
+    public static function formatViews($n) {
+        $n = (int)$n;
+        if ($n < 1000) return (string)$n;
+        if ($n < 10000) return number_format($n / 1000, 1, '.', '') . 'k';
+        if ($n < 1000000) return floor($n / 1000) . 'k';
+        return number_format($n / 1000000, 1, '.', '') . 'M';
+    }
+
     public static function today() {
         return self::readDay(date('Y-m-d'));
     }
