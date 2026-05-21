@@ -958,9 +958,46 @@ body.mobile-nav-open .nav-toggle-icon-close {
   border-radius: 8px;
   color: var(--fg);
   font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    transform 0.1s;
 }
 .share-btn:hover {
   background: var(--border);
+  transform: translateY(-1px);
+}
+.share-btn.share-tg:hover {
+  background: #229ed9;
+  color: #fff;
+}
+.share-btn.share-wa:hover {
+  background: #25d366;
+  color: #fff;
+}
+.share-btn.share-vk:hover {
+  background: #0077ff;
+  color: #fff;
+}
+.share-btn.share-tw:hover {
+  background: #1da1f2;
+  color: #fff;
+}
+.share-btn.share-copy:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.share-btn.share-native:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+.share-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
 }
 
 /* === Связанные статьи === */

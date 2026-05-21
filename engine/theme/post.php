@@ -54,13 +54,61 @@ $author = Auth::user();
         </footer>
         <?php endif; ?>
 
-        <div class="share-buttons">
-            <span><?= Icon::svg('share', 14) ?> Поделиться:</span>
-            <?php $url = BASE_URL . '?route=post/' . urlencode($post['slug']); ?>
-            <a href="https://t.me/share/url?url=<?= urlencode($url) ?>&text=<?= urlencode($post['title']) ?>" target="_blank" class="share-btn"><?= Icon::svg('telegram', 14) ?> Telegram</a>
-            <a href="https://vk.com/share.php?url=<?= urlencode($url) ?>" target="_blank" class="share-btn"><?= Icon::svg('vk', 14) ?> VK</a>
-            <a href="https://twitter.com/intent/tweet?url=<?= urlencode($url) ?>&text=<?= urlencode($post['title']) ?>" target="_blank" class="share-btn"><?= Icon::svg('twitter', 14) ?> Twitter</a>
+        <?php
+        // Абсолютный URL поста (для корректного шаринга)
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $shareUrl = $scheme . '://' . $host . str_replace(BASE_URL, BASE_URL, BASE_URL) . '?route=post/' . urlencode($post['slug']);
+        // Приведём к абсолютной форме на случай относительного BASE_URL
+        if (strpos(BASE_URL, 'http') === 0) {
+            $shareUrl = rtrim(BASE_URL, '/') . '/?route=post/' . urlencode($post['slug']);
+        }
+        ?>
+        <div class="share-buttons" data-share-url="<?= htmlspecialchars($shareUrl) ?>" data-share-title="<?= htmlspecialchars($post['title']) ?>">
+            <span class="share-label"><?= Icon::svg('share', 14) ?> Поделиться:</span>
+            <a href="https://t.me/share/url?url=<?= urlencode($shareUrl) ?>&text=<?= urlencode($post['title']) ?>" target="_blank" rel="noopener" class="share-btn share-tg" aria-label="Поделиться в Telegram"><?= Icon::svg('telegram', 14) ?> Telegram</a>
+            <a href="https://api.whatsapp.com/send?text=<?= urlencode($post['title'] . ' — ' . $shareUrl) ?>" target="_blank" rel="noopener" class="share-btn share-wa" aria-label="Поделиться в WhatsApp"><?= Icon::svg('whatsapp', 14) ?> WhatsApp</a>
+            <a href="https://vk.com/share.php?url=<?= urlencode($shareUrl) ?>" target="_blank" rel="noopener" class="share-btn share-vk" aria-label="Поделиться ВКонтакте"><?= Icon::svg('vk', 14) ?> VK</a>
+            <a href="https://twitter.com/intent/tweet?url=<?= urlencode($shareUrl) ?>&text=<?= urlencode($post['title']) ?>" target="_blank" rel="noopener" class="share-btn share-tw" aria-label="Поделиться в Twitter"><?= Icon::svg('twitter', 14) ?> Twitter</a>
+            <button type="button" class="share-btn share-copy" aria-label="Скопировать ссылку"><?= Icon::svg('link', 14) ?> <span class="share-copy-text">Копировать</span></button>
+            <button type="button" class="share-btn share-native" aria-label="Системное меню" style="display:none;"><?= Icon::svg('share', 14) ?> Поделиться</button>
         </div>
+        <script>
+        (function(){
+            const wrap = document.currentScript.previousElementSibling;
+            if (!wrap || !wrap.classList.contains('share-buttons')) return;
+            const url = wrap.dataset.shareUrl;
+            const title = wrap.dataset.shareTitle;
+            const copyBtn = wrap.querySelector('.share-copy');
+            const copyText = wrap.querySelector('.share-copy-text');
+            const nativeBtn = wrap.querySelector('.share-native');
+
+            if (copyBtn) {
+                copyBtn.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(url);
+                        copyText.textContent = '✓ Скопировано';
+                        setTimeout(() => copyText.textContent = 'Копировать', 1800);
+                    } catch (e) {
+                        // fallback
+                        const ta = document.createElement('textarea');
+                        ta.value = url;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        try { document.execCommand('copy'); copyText.textContent = '✓ Скопировано'; setTimeout(() => copyText.textContent = 'Копировать', 1800); } catch(_){}
+                        document.body.removeChild(ta);
+                    }
+                });
+            }
+            // Системное меню шаринга (iOS/Android)
+            if (navigator.share && nativeBtn) {
+                nativeBtn.style.display = '';
+                nativeBtn.addEventListener('click', async () => {
+                    try { await navigator.share({ title, url }); } catch(_){}
+                });
+            }
+        })();
+        </script>
     </article>
 
     <?php if (!empty($related)): ?>

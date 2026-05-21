@@ -3,14 +3,85 @@ $site = Settings::all();
 $user = Auth::user();
 $categories = Categories::all();
 $staticPages = Pages::all();
+
+// === SEO / OpenGraph / Twitter ===
+$ogTitle = $pageTitle . ' — ' . $site['site_title'];
+$ogDesc  = $site['site_description'] ?? '';
+$ogImage = $site['og_default_image'] ?? '';
+$ogType  = 'website';
+$ogUrl   = (($_SERVER['HTTPS'] ?? '') ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '');
+
+if (!empty($post) && is_array($post)) {
+    $ogTitle = $post['title'] . ' — ' . $site['site_title'];
+    if (!empty($post['description'])) $ogDesc = $post['description'];
+    if (!empty($post['cover'])) {
+        $ogImage = $post['cover'];
+        // Если относительный путь — делаем абсолютным
+        if (strpos($ogImage, 'http') !== 0) $ogImage = rtrim(BASE_URL, '/') . '/' . ltrim($ogImage, '/');
+    }
+    $ogType = 'article';
+}
+if (!empty($category) && is_array($category)) {
+    $ogTitle = $category['name'] . ' — ' . $site['site_title'];
+    if (!empty($category['description'])) $ogDesc = $category['description'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle . ' — ' . $site['site_title']) ?></title>
-    <meta name="description" content="<?= htmlspecialchars($site['site_description']) ?>">
+    <title><?= htmlspecialchars($ogTitle) ?></title>
+    <meta name="description" content="<?= htmlspecialchars($ogDesc) ?>">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="<?= htmlspecialchars($ogTitle) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($ogDesc) ?>">
+    <meta property="og:type" content="<?= htmlspecialchars($ogType) ?>">
+    <meta property="og:url" content="<?= htmlspecialchars($ogUrl) ?>">
+    <meta property="og:site_name" content="<?= htmlspecialchars($site['site_title']) ?>">
+    <meta property="og:locale" content="ru_RU">
+    <?php if ($ogImage): ?>
+    <meta property="og:image" content="<?= htmlspecialchars($ogImage) ?>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <?php endif; ?>
+    <?php if ($ogType === 'article' && !empty($post)): ?>
+    <meta property="article:published_time" content="<?= date('c', strtotime($post['date'] ?? 'now')) ?>">
+    <?php foreach ($post['tags'] ?? [] as $t): ?>
+    <meta property="article:tag" content="<?= htmlspecialchars($t) ?>">
+    <?php endforeach; ?>
+    <?php endif; ?>
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="<?= $ogImage ? 'summary_large_image' : 'summary' ?>">
+    <meta name="twitter:title" content="<?= htmlspecialchars($ogTitle) ?>">
+    <meta name="twitter:description" content="<?= htmlspecialchars($ogDesc) ?>">
+    <?php if ($ogImage): ?><meta name="twitter:image" content="<?= htmlspecialchars($ogImage) ?>"><?php endif; ?>
+
+    <!-- Canonical -->
+    <link rel="canonical" href="<?= htmlspecialchars($ogUrl) ?>">
+
+    <?php if ($ogType === 'article' && !empty($post)): ?>
+    <!-- JSON-LD Article -->
+    <script type="application/ld+json"><?= json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'Article',
+        'headline' => $post['title'],
+        'description' => $ogDesc,
+        'image' => $ogImage ?: null,
+        'datePublished' => date('c', strtotime($post['date'] ?? 'now')),
+        'dateModified' => date('c', strtotime($post['autosavedAt'] ?? $post['date'] ?? 'now')),
+        'author' => ['@type' => 'Person', 'name' => $site['author_name'] ?? $site['site_title']],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => $site['site_title'],
+            'logo' => !empty($site['logo']) ? ['@type' => 'ImageObject', 'url' => $site['logo']] : null,
+        ],
+        'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $ogUrl],
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) ?></script>
+    <?php endif; ?>
+
     <link rel="alternate" type="application/rss+xml" title="RSS" href="<?= BASE_URL ?>?route=rss">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
