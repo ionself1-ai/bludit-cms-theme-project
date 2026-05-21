@@ -9,6 +9,7 @@ require __DIR__ . '/lib/Settings.php';
 require __DIR__ . '/lib/Uploader.php';
 require __DIR__ . '/lib/Subscribers.php';
 require __DIR__ . '/lib/Mailer.php';
+require __DIR__ . '/lib/Importer.php';
 require __DIR__ . '/theme/icons.php';
 
 // Первый запуск — создаём админа

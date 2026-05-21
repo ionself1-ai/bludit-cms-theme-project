@@ -1194,6 +1194,37 @@ body.mobile-nav-open .nav-toggle-icon-close {
 }
 
 /* ==========================================================================
+   Blur-up превью загружаемых картинок
+   ========================================================================== */
+img.blur-up {
+  filter: blur(14px);
+  transform: scale(1.04);
+  transition:
+    filter 0.4s ease,
+    transform 0.4s ease,
+    opacity 0.3s ease;
+  opacity: 0.85;
+  background: var(--secondary);
+}
+img.blur-up.is-loaded {
+  filter: blur(0);
+  transform: scale(1);
+  opacity: 1;
+}
+/* Контейнер с равномерным фоном на время загрузки */
+.post-cover,
+.single-cover,
+.ss-item img {
+  background: var(--secondary);
+}
+.post-cover img,
+.single-cover img,
+.single-content figure img {
+  /* Поддержим прозрачные PNG */
+  background: transparent;
+}
+
+/* ==========================================================================
    PWA install button
    ========================================================================== */
 .pwa-install-btn {

@@ -312,6 +312,31 @@ document.addEventListener('click', e => {
     }
 });
 
+// Blur-up: плавное появление картинок после загрузки
+(function(){
+    const selector = '.post-cover img, .single-cover img, .single-content img, .ss-item img';
+    function attach(img) {
+        if (img.dataset.blurInit) return;
+        img.dataset.blurInit = '1';
+        img.classList.add('blur-up');
+        if (img.complete && img.naturalWidth > 0) {
+            img.classList.add('is-loaded');
+        } else {
+            img.addEventListener('load', () => img.classList.add('is-loaded'), { once: true });
+            img.addEventListener('error', () => img.classList.add('is-loaded'), { once: true });
+        }
+    }
+    document.querySelectorAll(selector).forEach(attach);
+    // Подхватываем динамически добавленные (например, в поиске)
+    new MutationObserver(muts => {
+        muts.forEach(m => m.addedNodes.forEach(n => {
+            if (n.nodeType !== 1) return;
+            if (n.matches && n.matches(selector)) attach(n);
+            n.querySelectorAll && n.querySelectorAll(selector).forEach(attach);
+        }));
+    }).observe(document.body, { childList: true, subtree: true });
+})();
+
 // PWA: регистрация Service Worker + кнопка «Установить»
 (function(){
     if ('serviceWorker' in navigator) {

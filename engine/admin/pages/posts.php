@@ -6,11 +6,47 @@ if (($_GET['delete'] ?? '') !== '' && Auth::checkCsrf($_GET['csrf'] ?? '')) {
     header('Location: ' . BASE_URL . '?route=admin/posts'); exit;
 }
 
-$posts = Posts::all(false);
+$allPosts = Posts::all(false);
+$now = time();
+$filter = $_GET['filter'] ?? 'all';
+
+// Распределяем по группам
+$grouped = ['all'=>[], 'published'=>[], 'scheduled'=>[], 'drafts'=>[]];
+foreach ($allPosts as $p) {
+    $grouped['all'][] = $p;
+    $isScheduled = !empty($p['published']) && !empty($p['publish_at']) && strtotime($p['publish_at']) > $now;
+    if ($isScheduled) $grouped['scheduled'][] = $p;
+    elseif (!empty($p['published'])) $grouped['published'][] = $p;
+    else $grouped['drafts'][] = $p;
+}
+$posts = $grouped[$filter] ?? $grouped['all'];
+
+// Сортировка: запланированные — по publish_at (ближайшие сверху), остальные — по дате создания
+if ($filter === 'scheduled') {
+    usort($posts, fn($a, $b) => strtotime($a['publish_at']) - strtotime($b['publish_at']));
+}
 ?>
 <div class="admin-header">
     <h1>Статьи</h1>
-    <a href="<?= BASE_URL ?>?route=admin/post-edit" class="btn btn-primary">+ Новая статья</a>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="<?= BASE_URL ?>?route=admin/import" class="btn">Импорт</a>
+        <a href="<?= BASE_URL ?>?route=admin/post-edit" class="btn btn-primary">+ Новая статья</a>
+    </div>
+</div>
+
+<div class="filter-bar" style="margin-bottom:1rem;">
+    <a href="?route=admin/posts" class="filter-btn <?= $filter==='all'?'filter-btn-active':'' ?>">
+        Все <span style="opacity:0.6;">(<?= count($grouped['all']) ?>)</span>
+    </a>
+    <a href="?route=admin/posts&filter=published" class="filter-btn <?= $filter==='published'?'filter-btn-active':'' ?>">
+        ✓ Опубликованные <span style="opacity:0.6;">(<?= count($grouped['published']) ?>)</span>
+    </a>
+    <a href="?route=admin/posts&filter=scheduled" class="filter-btn <?= $filter==='scheduled'?'filter-btn-active':'' ?>">
+        ⏰ Запланированные <span style="opacity:0.6;">(<?= count($grouped['scheduled']) ?>)</span>
+    </a>
+    <a href="?route=admin/posts&filter=drafts" class="filter-btn <?= $filter==='drafts'?'filter-btn-active':'' ?>">
+        Черновики <span style="opacity:0.6;">(<?= count($grouped['drafts']) ?>)</span>
+    </a>
 </div>
 
 <div class="admin-card">
@@ -54,7 +90,19 @@ $posts = Posts::all(false);
                 </td>
             </tr>
         <?php endforeach; ?>
-        <?php if (empty($posts)): ?><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:2rem">Статей пока нет. <a href="<?= BASE_URL ?>?route=admin/post-edit">Создать первую</a></td></tr><?php endif; ?>
+        <?php if (empty($posts)): ?>
+            <tr><td colspan="6" style="color:var(--muted);text-align:center;padding:2rem">
+                <?php if ($filter === 'scheduled'): ?>
+                    Нет запланированных публикаций. Откройте любой пост и задайте дату публикации.
+                <?php elseif ($filter === 'drafts'): ?>
+                    Нет черновиков. Все статьи опубликованы.
+                <?php elseif ($filter === 'published'): ?>
+                    Нет опубликованных статей.
+                <?php else: ?>
+                    Статей пока нет. <a href="<?= BASE_URL ?>?route=admin/post-edit">Создать первую</a>
+                <?php endif; ?>
+            </td></tr>
+        <?php endif; ?>
         </tbody>
     </table>
 </div>
