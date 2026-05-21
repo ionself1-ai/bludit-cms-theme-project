@@ -38,6 +38,11 @@ $staticPages = Pages::all();
                 <span class="logo-text"><?= htmlspecialchars($site['site_title']) ?></span>
             </a>
 
+            <button class="icon-btn nav-toggle" onclick="toggleMobileNav()" aria-label="Открыть меню">
+                <span class="nav-toggle-icon-open"><?= Icon::svg('menu', 20) ?></span>
+                <span class="nav-toggle-icon-close"><?= Icon::svg('close', 20) ?></span>
+            </button>
+
             <nav class="navbar-nav">
                 <a href="<?= BASE_URL ?>" class="nav-link <?= $template === 'home' ? 'nav-link-active' : '' ?>">Explore</a>
                 <?php foreach ($categories as $cat): ?>
@@ -123,6 +128,17 @@ function toggleDropdown(btn) {
 document.addEventListener('click', e => {
     if (!e.target.closest('.dropdown')) {
         document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+    }
+});
+
+function toggleMobileNav() {
+    document.body.classList.toggle('mobile-nav-open');
+}
+document.addEventListener('click', e => {
+    if (document.body.classList.contains('mobile-nav-open')) {
+        if (!e.target.closest('.navbar-nav') && !e.target.closest('.nav-toggle')) {
+            document.body.classList.remove('mobile-nav-open');
+        }
     }
 });
 

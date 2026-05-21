@@ -100,6 +100,18 @@ select {
   flex: 1;
   flex-wrap: wrap;
 }
+.nav-toggle {
+  display: none;
+}
+.nav-toggle-icon-close {
+  display: none;
+}
+body.mobile-nav-open .nav-toggle-icon-open {
+  display: none;
+}
+body.mobile-nav-open .nav-toggle-icon-close {
+  display: inline-flex;
+}
 .nav-link {
   padding: 6px 12px;
   border-radius: 8px;
@@ -215,11 +227,6 @@ select {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
-}
-@media (max-width: 700px) {
-  .posts-grid {
-    grid-template-columns: 1fr;
-  }
 }
 .post-card {
   border: 1px solid var(--border);
@@ -1115,4 +1122,293 @@ select {
   font-weight: 700;
   margin-bottom: 1.5rem;
   text-align: center;
+}
+
+/* ==========================================================================
+   Адаптивный дизайн
+   ========================================================================== */
+
+/* Защита от переполнений в контенте поста */
+.single-content img,
+.single-content video,
+.single-content iframe {
+  max-width: 100%;
+  height: auto;
+}
+.single-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.single-content pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.single-content code:not(pre code) {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.single-content a {
+  word-break: break-word;
+}
+
+/* Большие десктопы: 3 колонки */
+@media (min-width: 1100px) {
+  .posts-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Планшеты (до 900px) */
+@media (max-width: 900px) {
+  :root {
+    --nav-h: 56px;
+  }
+  .navbar-inner {
+    gap: 0.5rem;
+  }
+  .navbar-nav {
+    gap: 4px;
+  }
+  .nav-link {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  /* Скрываем второстепенные пункты на планшетах */
+  .navbar-actions .nav-link[title="Войти"],
+  .navbar-actions .nav-link[title="Админка"] {
+    display: none;
+  }
+}
+
+/* Мобильные устройства (до 720px) */
+@media (max-width: 720px) {
+  body {
+    font-size: 15px;
+  }
+  .site-container {
+    padding: 0 14px;
+  }
+  /* Бургер */
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: var(--fg);
+    cursor: pointer;
+    border-radius: 8px;
+    order: 3;
+  }
+  .nav-toggle:hover {
+    background: var(--secondary);
+  }
+  /* Мобильное выпадающее меню */
+  .navbar-nav {
+    display: none;
+    position: absolute;
+    top: var(--nav-h);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 12px;
+    gap: 2px;
+    max-height: calc(100vh - var(--nav-h));
+    overflow-y: auto;
+    z-index: 99;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  }
+  body.mobile-nav-open .navbar-nav {
+    display: flex;
+  }
+  .navbar-nav .nav-link {
+    display: block;
+    padding: 12px 14px;
+    font-size: 15px;
+    border-radius: 8px;
+    min-height: 44px;
+    line-height: 20px;
+  }
+  /* Dropdown «More» — без абсолюта внутри мобильного меню */
+  .navbar-nav .dropdown {
+    width: 100%;
+  }
+  .navbar-nav .dropdown-toggle {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .navbar-nav .dropdown-menu {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    border: none;
+    background: var(--secondary);
+    padding: 4px;
+    margin-top: 4px;
+  }
+  .navbar-nav .dropdown-item {
+    padding: 12px 14px;
+    font-size: 14px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  /* Шапка: оставляем логотип, поиск-иконку, тему, бургер */
+  .navbar-inner {
+    gap: 6px;
+  }
+  .navbar-actions {
+    gap: 4px;
+  }
+  .navbar-actions .search-wrap {
+    flex: 1;
+    min-width: 0;
+    max-width: 220px;
+  }
+  .search-input {
+    width: 100%;
+    padding: 9px 10px 9px 32px !important;
+    font-size: 14px;
+    min-height: 40px;
+  }
+  /* Сетка: 1 колонка */
+  .posts-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  /* Типографика */
+  .hero-title {
+    font-size: 1.6rem;
+  }
+  .hero-desc {
+    font-size: 14px;
+  }
+  .single-title {
+    font-size: 1.6rem !important;
+    line-height: 1.25;
+  }
+  .single-content {
+    font-size: 16px;
+  }
+  .single-content h1 {
+    font-size: 1.5rem;
+  }
+  .single-content h2 {
+    font-size: 1.3rem;
+  }
+  .single-content h3 {
+    font-size: 1.15rem;
+  }
+  /* Отступы страниц */
+  .page-home,
+  .page-single {
+    padding: 1.25rem 0;
+  }
+  .hero {
+    margin-bottom: 1.25rem;
+  }
+  .filter-bar {
+    margin: 1rem 0 1.25rem;
+    gap: 6px;
+  }
+  .related-posts {
+    margin-top: 2rem !important;
+  }
+  /* Touch-friendly кнопки и формы */
+  .filter-btn,
+  .pagination-btn,
+  .btn {
+    min-height: 40px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  .dropdown-item {
+    min-height: 40px;
+    padding: 10px 12px;
+  }
+  .theme-toggle,
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .form-row input[type="text"],
+  .form-row input[type="email"],
+  .form-row input[type="password"],
+  .form-row textarea,
+  .form-row select,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea {
+    font-size: 16px; /* предотвращает зум iOS */
+    min-height: 40px;
+  }
+  /* Footer */
+  .footer-inner {
+    gap: 0.75rem;
+  }
+  .footer-links {
+    gap: 8px 14px;
+    font-size: 13px;
+    justify-content: center;
+  }
+  /* Карточка статьи */
+  .post-card-body {
+    padding: 1rem;
+  }
+  /* Таблицы и код */
+  .ejs-table td,
+  .ejs-table th {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  .single-content pre {
+    font-size: 12.5px;
+    padding: 0.75rem;
+  }
+  /* Ссылочный embed-блок */
+  .ejs-link {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ejs-link img {
+    width: 100%;
+    height: 180px;
+  }
+  /* Автор */
+  .author-avatar {
+    width: 88px;
+    height: 88px;
+  }
+}
+
+/* Очень узкие экраны */
+@media (max-width: 380px) {
+  .site-container {
+    padding: 0 12px;
+  }
+  .logo-text {
+    display: none;
+  }
+  .navbar-actions .search-wrap {
+    display: none;
+  }
+  .hero-title {
+    font-size: 1.4rem;
+  }
+  .single-title {
+    font-size: 1.4rem !important;
+  }
 }
