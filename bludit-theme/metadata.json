@@ -1,0 +1,11 @@
+{
+  "name": "Bludit Theme",
+  "description": "Minimalist light/dark theme based on the playtester.io aesthetic. Fixed 980px width layout with navigation, blog, categories, and about sections.",
+  "author": "Bludit Theme",
+  "email": "",
+  "website": "",
+  "version": "1.0.0",
+  "releaseDate": "2026-05-21",
+  "license": "MIT",
+  "compatibility": "3.*"
+}
