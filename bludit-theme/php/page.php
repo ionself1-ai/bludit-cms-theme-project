@@ -7,30 +7,37 @@
 
         <!-- Post header -->
         <header class="single-header">
-            <?php if ($page->category()): ?>
             <div class="single-meta-top">
+                <?php if ($page->category()): ?>
                 <a href="<?php echo $page->categoryPermalink(); ?>" class="post-category">
-                    <?php echo $page->category(); ?>
+                    <?php echo htmlspecialchars($page->category()); ?>
                 </a>
-                <span class="post-date"><?php echo $page->date('d M Y'); ?></span>
+                <?php endif; ?>
+                <span class="post-date"><?php echo $page->date(); ?></span>
+                <?php
+                $rt = '';
+                try { $rt = $page->readingTime(); } catch (Exception $e) {}
+                ?>
+                <?php if (!empty($rt)): ?>
+                <span class="post-reading-time"><?php echo htmlspecialchars($rt); ?></span>
+                <?php endif; ?>
             </div>
-            <?php else: ?>
-            <div class="single-meta-top">
-                <span class="post-date"><?php echo $page->date('d M Y'); ?></span>
-            </div>
-            <?php endif; ?>
 
-            <h1 class="single-title"><?php echo $page->title(); ?></h1>
+            <h1 class="single-title"><?php echo htmlspecialchars($page->title()); ?></h1>
 
             <?php if ($page->description()): ?>
-            <p class="single-desc"><?php echo $page->description(); ?></p>
+            <p class="single-desc"><?php echo htmlspecialchars($page->description()); ?></p>
             <?php endif; ?>
         </header>
 
         <!-- Cover image -->
-        <?php if ($page->coverImage()): ?>
+        <?php
+        $coverImg = '';
+        try { $coverImg = $page->coverImage(true); } catch (Exception $e) {}
+        ?>
+        <?php if (!empty($coverImg)): ?>
         <div class="single-cover">
-            <img src="<?php echo $page->coverImage(); ?>" alt="<?php echo $page->title(); ?>">
+            <img src="<?php echo htmlspecialchars($coverImg); ?>" alt="<?php echo htmlspecialchars($page->title()); ?>">
         </div>
         <?php endif; ?>
 
@@ -40,11 +47,14 @@
         </div>
 
         <!-- Tags -->
-        <?php if ($page->tagsArray()): ?>
+        <?php
+        $pageTags = $page->tags(true);
+        if (!empty($pageTags) && is_array($pageTags)):
+        ?>
         <footer class="single-footer">
             <div class="single-tags">
-                <?php foreach ($page->tagsArray() as $tag): ?>
-                <a href="<?php echo DOMAIN; ?>tag/<?php echo $tag; ?>" class="post-tag">#<?php echo $tag; ?></a>
+                <?php foreach ($pageTags as $tagKey => $tagName): ?>
+                <a href="<?php echo DOMAIN; ?>tag/<?php echo urlencode($tagKey); ?>" class="post-tag">#<?php echo htmlspecialchars($tagName); ?></a>
                 <?php endforeach; ?>
             </div>
         </footer>
