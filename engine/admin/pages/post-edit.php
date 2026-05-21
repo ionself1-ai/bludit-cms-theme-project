@@ -77,10 +77,11 @@ $cats = Categories::all();
 
     <div class="form-row">
         <label>Обложка</label>
-        <div style="display:flex; gap:8px; align-items:center;">
-            <input type="text" name="cover" id="cover-url" value="<?= htmlspecialchars($post['cover']) ?>" placeholder="URL или загрузите">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="text" name="cover" id="cover-url" value="<?= htmlspecialchars($post['cover']) ?>" placeholder="URL или загрузите" style="flex:1; min-width:200px;">
             <input type="file" id="cover-file" accept="image/*" style="display:none;">
             <button type="button" class="btn" onclick="document.getElementById('cover-file').click()">Загрузить</button>
+            <button type="button" class="btn" id="media-gallery-btn">Из загруженных</button>
         </div>
         <div style="margin-top:.75rem; padding:.75rem; background:var(--secondary); border-radius:8px;">
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
@@ -537,5 +538,149 @@ if (coverFile) coverFile.addEventListener('change', async (e) => {
         alert(data.error || 'Ошибка');
     }
 });
+</script>
+
+<!-- Модалка галереи медиа -->
+<div id="media-modal" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; width:100%; max-width:880px; max-height:88vh; display:flex; flex-direction:column; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid var(--border);">
+            <div style="font-size:1.05rem; font-weight:600;">Выберите изображение</div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <input type="search" id="media-search" placeholder="Поиск по имени..." style="background:var(--secondary); border:none; outline:none; border-radius:8px; padding:8px 12px; font-size:13px;">
+                <button type="button" class="btn" id="media-upload-btn">+ Загрузить новое</button>
+                <button type="button" class="btn" id="media-close" aria-label="Закрыть">✕</button>
+            </div>
+        </div>
+        <div id="media-body" style="padding:1rem 1.25rem; overflow-y:auto; flex:1; min-height:200px;">
+            <div id="media-loading" style="text-align:center; padding:2rem; color:var(--muted);">Загрузка...</div>
+            <div id="media-empty" style="display:none; text-align:center; padding:2rem; color:var(--muted);">Пока нет загруженных изображений. Загрузите первое — оно появится здесь.</div>
+            <div id="media-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px;"></div>
+        </div>
+        <div style="padding:0.75rem 1.25rem; border-top:1px solid var(--border); font-size:12px; color:var(--muted); display:flex; justify-content:space-between; align-items:center;">
+            <span id="media-count"></span>
+            <span>Esc — закрыть</span>
+        </div>
+    </div>
+</div>
+<style>
+.media-tile { position:relative; aspect-ratio:1/1; border-radius:8px; overflow:hidden; cursor:pointer; background:var(--secondary); border:2px solid transparent; transition:border-color 0.15s, transform 0.15s; }
+.media-tile:hover { border-color:var(--accent); }
+.media-tile.is-selected { border-color:var(--accent); }
+.media-tile img { width:100%; height:100%; object-fit:cover; display:block; }
+.media-tile-meta { position:absolute; left:0; right:0; bottom:0; padding:6px 8px; background:linear-gradient(to top, rgba(0,0,0,0.75), transparent); color:#fff; font-size:11px; line-height:1.3; opacity:0; transition:opacity 0.15s; pointer-events:none; }
+.media-tile:hover .media-tile-meta { opacity:1; }
+</style>
+<script>
+(function(){
+    const modal = document.getElementById('media-modal');
+    const openBtn = document.getElementById('media-gallery-btn');
+    const closeBtn = document.getElementById('media-close');
+    const grid = document.getElementById('media-grid');
+    const loading = document.getElementById('media-loading');
+    const empty = document.getElementById('media-empty');
+    const search = document.getElementById('media-search');
+    const counter = document.getElementById('media-count');
+    const uploadBtn = document.getElementById('media-upload-btn');
+    const coverInput = document.getElementById('cover-url');
+    const fileInput = document.getElementById('cover-file');
+
+    let allItems = [];
+    let loaded = false;
+
+    function fmtSize(b) {
+        if (b < 1024) return b + ' Б';
+        if (b < 1024*1024) return (b/1024).toFixed(1) + ' КБ';
+        return (b/1024/1024).toFixed(1) + ' МБ';
+    }
+    function fmtDate(ts) {
+        const d = new Date(ts * 1000);
+        return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric' });
+    }
+
+    function render(items) {
+        grid.innerHTML = '';
+        const current = (coverInput.value || '').trim();
+        if (!items.length) {
+            empty.style.display = 'block';
+            counter.textContent = '';
+            return;
+        }
+        empty.style.display = 'none';
+        counter.textContent = items.length + ' изобр.';
+        const frag = document.createDocumentFragment();
+        items.forEach(it => {
+            const tile = document.createElement('div');
+            tile.className = 'media-tile' + (it.url === current ? ' is-selected' : '');
+            tile.title = it.name;
+            tile.innerHTML =
+                '<img loading="lazy" src="' + it.url + '" alt="">' +
+                '<div class="media-tile-meta">' + fmtDate(it.mtime) + ' · ' + fmtSize(it.size) + '</div>';
+            tile.addEventListener('click', () => selectItem(it));
+            frag.appendChild(tile);
+        });
+        grid.appendChild(frag);
+    }
+
+    function selectItem(it) {
+        coverInput.value = it.url;
+        coverInput.dispatchEvent(new Event('input', { bubbles: true }));
+        if (typeof window.refreshCardPreview === 'function') window.refreshCardPreview();
+        closeModal();
+    }
+
+    function applyFilter() {
+        const q = (search.value || '').trim().toLowerCase();
+        if (!q) return render(allItems);
+        render(allItems.filter(it => it.name.toLowerCase().includes(q)));
+    }
+
+    async function loadMedia(force) {
+        if (loaded && !force) return;
+        loading.style.display = 'block';
+        empty.style.display = 'none';
+        grid.innerHTML = '';
+        try {
+            const r = await fetch('<?= BASE_URL ?>?route=admin/media-list');
+            const d = await r.json();
+            allItems = (d && d.items) || [];
+            loaded = true;
+            applyFilter();
+        } catch (e) {
+            empty.textContent = 'Не удалось загрузить список';
+            empty.style.display = 'block';
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+
+    function openModal() {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        loadMedia();
+        setTimeout(() => search.focus(), 100);
+    }
+    function closeModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+    });
+    search.addEventListener('input', applyFilter);
+
+    // Кнопка "Загрузить новое" внутри модалки — открывает файловый диалог,
+    // после успешной загрузки обновляем список
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+        // Если модалка открыта — перезагрузим список после короткой задержки
+        if (modal.style.display === 'flex') {
+            setTimeout(() => loadMedia(true), 1500);
+        }
+    });
+})();
 </script>
 <?php $body = ob_get_clean(); require __DIR__ . '/../layout.php';
